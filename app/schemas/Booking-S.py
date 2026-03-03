@@ -2,11 +2,15 @@ from pydantic import BaseModel, EmailStr, Field, model_validator
 from typing import Optional
 from datetime import date
 
+from app.core.enums import BookingEnum
+
+# Action
 class BookingCreate(BaseModel):
     item_id: int
     category_id: int
     start_date: date
     end_date: date
+    status: BookingEnum
     comment: Optional[str] = Field(default=None, min_length=3, max_length=200)
 
     @model_validator(model='after')
