@@ -1,0 +1,42 @@
+Login (fake_admin):
+
+
+{ 
+    "email": "admin@example.com",
+    "password" : "admin123"
+}
+
+
+Create category:
+[
+  {
+    "category_name": "Dykkeflaske",
+    "description": "Kategori for flasker brukt til dykking"
+  },
+  {
+    "category_name": "Maske",
+    "description": "Kategori for dykkemasker og tilbehør"
+  }
+]
+
+
+Create item:
+
+{
+  "name": "Dykkerflaske",
+  "status": "Helt ny",
+  "category_id": FILL IN WITH RESPONSED CATEGORY ID,
+  "comments": "Ny flaske klar til utleie"
+}
+
+Create User:
+{
+  "email": "test@example.com",
+  "first_name": "Test",
+  "middle_name": null,
+  "last_name": "Testmann",
+  "contact": "12345678"
+}
+
+Create booking:
+
