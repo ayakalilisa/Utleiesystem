@@ -5,6 +5,26 @@
     <title>Title</title>
 </head>
 <body>
+    <form onsubmit = "RegisterAdmin(event)" class = "register-form">
+        <label for = "firstname"> Fornavn </label>
+        <input id = "firstname" type = "text" required>
 
+        <label for = "middlename"> Mellomnavn </label>
+        <input id = "middlename" type = "text" optional>
+
+        <label for = "lastname"> Etternavn </label>
+        <input id = "lastname" type = "text" required>
+
+        <label for = "telefon"> Telefon </label>
+        <input id = "telefon" type = "number" required>
+
+        <label for = "email"> E-post </label>
+        <input id = "email" type = "email" required>
+
+        <label for = "password"> Passord </label>
+        <input id = "password" type = "password" required>
+
+        <button type = "register"> Register </button>
+    </form>
 </body>
 </html>

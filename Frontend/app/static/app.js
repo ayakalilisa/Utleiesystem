@@ -57,8 +57,18 @@ async function loginAdmin(event) {
         }
 
 // Users
-function loadUsers(){
-    return localStorage.getItem("user_id");
+async function loadUsers(){
+    const response = await fetch ("http://127.0.0.1:8000/users",
+    {method:"GET",
+    headers: {"Authorization": `Bearer ${getToken()}`}
+    });
+
+    const user = await response.json();
+
+    if (!response.ok){
+    errorMessage.textContent = "Finnes ingen varer";
+
+    return user;
     }
 
 

@@ -39,4 +39,9 @@ Create User:
 }
 
 Create booking:
-
+{
+  "user_id": 5,
+  "item_id": 1,
+  "start_date": "2026-06-01",
+  "end_date": "2026-06-07"
+}
