@@ -38,13 +38,6 @@ def bookings(request: Request):
         {"request": request}
     )
 
-@app.get("/categories")
-def categories(request: Request):
-    return templates.TemplateResponse(
-        "categories.html",
-        {"request": request}
-    )
-
 @app.get("/items")
 def items(request: Request):
     return templates.TemplateResponse(

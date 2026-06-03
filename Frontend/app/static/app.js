@@ -75,12 +75,137 @@ async function loadUsers(){
 createUser()
 
 // Categories
-loadCategories()
-createCategory()
+async function loadCategories() {
+    const response = await fetch("http://127.0.0.1:8000/category", {
+        method: "GET",
+        headers: {"Authorization": `Bearer ${getToken()}`
+    });
+
+    const categories = await response.json();
+
+    const tabs = document.getElementById("category-tabs");
+    const placeholder = document.getElementById("category-placeholder");
+    const sections = document.getElementById("category-sections");
+
+    if (categories.length === 0) {
+        placeholder.style.display = "inline";
+        return;
+    }
+
+    placeholder.style.display = "none";
+
+    categories.forEach(category => {
+        // create bookmark tab
+        // create matching section
+    });
+}
+
+
+async function createCategory(event) {
+    event.preventDefault();
+
+    const categoryName = document.getElementById("categoryName").value;
+    const description = document.getElementById("categoryDescription").value;
+    const errorMessage = document.getElementById("errorMessage");
+
+    if (errorMessage) {
+        errorMessage.textContent = "";
+    }
+
+    const response = await fetch("http://127.0.0.1:8000/category/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({
+            category_name: categoryName,
+            description: description
+        })
+    });
+
+    if (!response.ok) {
+        if (errorMessage) {
+            errorMessage.textContent = "Kunne ikke opprette kategori.Ikke autorisert.";
+        }
+        return;
+    }
+
+    const category = await response.json();
+    event.target.reset();
+    loadCategories();
+
+    return category;
+}
+
+function AddCategoryForm(){
+    const form = document.getElementById("AddCategoryForm");
+    form.classlist.remove("hidden");
+    }
+
 
 // Items
-loadItems()
-createItem()
+async function loadItems(){
+    const response = await fetch("http://127.0.0.1:8000/item", {
+        method: "GET",
+        header: {"Authorization": `Bearer ${getToken()}`
+        });
+        const items = await response.json();
+
+        const tabs = document.getElementById("item-tabs");
+        const sections = document.getElementById("item-sections");
+
+        return item
+    }
+
+
+async function createItem(event) {
+    event.preventDefault();
+
+    const itemId = document.getElementById("itemId").value;
+    const itemStatus = document.getElementById("itemStatus").value;
+    const itemCategory = document.getElementById("itemCategory").value;
+    const itemComment = document.getElementById("itemComment").value;
+    const errorMessage = document.getElementById("errorMessage");
+
+    if (errorMessage) {
+        errorMessage.textContent = "";
+    }
+
+    const response = await fetch("http://127.0.0.1:8000/item/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({
+            name: itemName,
+            status: itemStatus,
+            category_id: Number(itemCategoryId),
+            comments: itemComment
+        })
+    });
+
+    if (!response.ok) {
+        if (errorMessage) {
+            errorMessage.textContent = "Kunne ikke opprette ny vare.";
+        }
+        return;
+    }
+
+    const item = await response.json();
+
+    event.target.reset();
+    loadItems();
+
+    return item;
+}
+
+function AddItemForm(){
+    const form = document.getElementById("AddItemForm");
+    form.classlist.remove("hidden");
+    }
+
 
 // Bookings
 loadBookings()

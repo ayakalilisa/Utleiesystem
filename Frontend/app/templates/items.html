@@ -7,6 +7,64 @@
     <title>Title</title>
 </head>
 <body>
+<!--the bookmark-like navigation bar on the top -->
+<nav id="category-tabs" class="bookmark-tabs">
+    <span id="category-placeholder" class="nav-placeholder">
+        Ingen kategorier ennå
+    </span>
+    <!--to add category -->
+    <button id="AddCategoryForm" onlick = "AddCategoryForm()" class="nav-add-button">
+        + Opprett kategori
+    </button>
+</nav>
 
+<!--item page -->
+<div id="item-sections"></div>
+<section id="items" class="item-page">
+    <div class="section-header">
+        <h2>Dykkeflaske</h2>
+        <button class="add-button" onclick="AddItemForm()">
+            + Opprett varer
+        </button>
+    </div>
+
+    <p id="empty-item-message" class="empty-message">
+        Ingenting på lager
+    </p>
+
+    <div id="item-list" class="item-list">
+        <!--item cards appear here -->
+    </div>
+
+</section>
+<!--the hidden pop-up category form -->
+<form class="hidden" onsubmit="createCategory(event)">
+    <label for = "categoryName"> Navn </label>
+    <input id = "categoryName" class ="login-card input" required>
+
+    <label for = "categoryDiscription"> Beskrivelse </label>
+    <input id = "categoryDiscription" class = "login-card input" optional>
+</form>
+
+<!--the hidden pop-up item form -->
+<form class="hidden" onsubmit="createItem(event)">
+    <label for = "itemCategory"> Kategori </label>
+    <select id = "itemCategory" name = "itemCategory">
+        <option value = ""> Velg kategori </option>
+         <!--app.js will add categories here  -->
+    </select>
+
+    <label for = "itemStatus">Status på varer </label>
+    <select id = "itemStatus" name = "itemStatus">
+        <option value = "New">Helt ny</option>
+        <option value = "okay">Grei stand</option>
+        <option value = "notgood">Treng reparasjon</option>
+        <option value = "bad">Ikke tilgjengelig</option>
+    </select>
+
+    <label for = "itemComment"> Kommentar </label>
+    <input id = "itemComment" class = "login-card input" optional>
+
+</form>
 </body>
 </html>
