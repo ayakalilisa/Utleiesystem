@@ -7,6 +7,48 @@
     <title>Title</title>
 </head>
 <body>
+<!--commen nav bar, remember to modify later, cause now it kind of double up with the one below, visually -->
+{% include "includes/commonNav.html" %}
+
+    <main class = "general-bg">
+        <section id = "users" class = "user-page">
+            <div id = "user-sections"></div>
+
+                <div class = "section-header">
+                    <h2>Bruker</h2>
+                    <button class = "add-button" onclick = "AddUserForm()">
+                        + Opprett ny bruker
+                    </button>
+                </div>
+            <p id = "empty-user-message" class = "empty-message-user">
+                Ingen kontakt
+            </p>
+
+            <div id = "user-list" class = "user-list">
+                <!--user cards appear here -->
+            </div>
+            <!--hidden user cards appear here -->
+
+            <form class = "hidden" onsubmit = "createUser(event)">
+                <label for = "first_name"> Fornavn </label>
+                <input id = "first_name" class = "login-card input" required>
+
+                <label for = "middle_name"> Mellomnavn </label>
+                <input id = "middle_name" class = "login-card input">
+
+                <label for = "last_name"> Etternavn </label>
+                <input id = "last_name" class = "login-card input" required>
+
+                <label for = "email"> Email </label>
+                <input id = "email" class = "login-card input" required>
+
+                <label for = "contact"> Telefon </label>
+                <input id = "contact" class = "login-card input" required>
+
+                <button type = "submit"> Opprett ny bruker </button>
+            </form>
+        </section>
+    </main>
 
 </body>
 </html>
