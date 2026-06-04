@@ -73,6 +73,44 @@ async function loadUsers(){
 
 
 createUser()
+//Filter
+function applyItemFilters() {
+    const selectedStatus = document.getElementById("filterStatus").value;
+    const selectedCategory = document.getElementById("filterCategory").value;
+    const sortValue = document.getElementById("sortItems").value;
+
+    let filteredItems = [...allItems];
+
+    if (selectedStatus) {
+        filteredItems = filteredItems.filter(item => item.status === selectedStatus);
+    }
+
+    if (selectedCategory) {
+        filteredItems = filteredItems.filter(
+            item => item.category_id === Number(selectedCategory)
+        );
+    }
+
+    if (sortValue === "id-asc") {
+        filteredItems.sort((a, b) => a.id - b.id);
+    }
+
+    if (sortValue === "id-desc") {
+        filteredItems.sort((a, b) => b.id - a.id);
+    }
+
+    if (sortValue === "status-asc") {
+        filteredItems.sort((a, b) => a.status.localeCompare(b.status));
+    }
+
+    if (sortValue === "category-asc") {
+        filteredItems.sort((a, b) => a.category_id - b.category_id);
+    }
+
+    renderItems(filteredItems);
+}
+
+
 
 // Categories
 async function loadCategories() {
@@ -140,9 +178,16 @@ async function createCategory(event) {
 
 function AddCategoryForm(){
     const form = document.getElementById("AddCategoryForm");
-    form.classlist.remove("hidden");
+    form.classList.remove("hidden");
     }
 
+function handleCategoryChoice() {
+    const categorySelect = document.getElementById("itemCategoryId");
+
+    if (categorySelect.value === "create-new") {
+        AddCategoryForm();
+    }
+}
 
 // Items
 async function loadItems(){
@@ -203,7 +248,7 @@ async function createItem(event) {
 
 function AddItemForm(){
     const form = document.getElementById("AddItemForm");
-    form.classlist.remove("hidden");
+    form.classList.remove("hidden");
     }
 
 

@@ -227,6 +227,13 @@ p {
     color: #822323;
 }
 
+/* Calender */
+.calender-bg{
+    background-color: white;
+    margin: 50px;
+    padding: 50px;
+    width: 100%}
+
 /* Lists */
 ul {
   list-style-type: none;
