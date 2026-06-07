@@ -1,10 +1,13 @@
 /* This is the General layout, how it will looks like */
 body {
     margin: 0;
-    font-family: Agency FB;
-    background-color: #5377b5;
-    text-align: left;
-    color: #382208;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family: Arial, sans-serif;
 }
 
 h1 {
@@ -23,9 +26,37 @@ p {
     padding: 24px;
 }
 
-.general-bg{
+.general-bg {
+    margin: 0;
+    min-height: 100vh;
     background-color: #719ff0;
-    }
+}
+.hidden {
+    display: none;
+}
+/* Home */
+.home-page {
+    min-height: 100vh;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    background-color: #719ff0;
+}
+.home-title {
+    font-size = 500px}
+
+.subtitle {
+    font-size = 100px;
+    margin-top: 8px;
+    margin-bottom: 24px;
+}
+
+
 
 /* Dashboard */
 
@@ -96,29 +127,30 @@ p {
 }
 
 /* Login page */
-.login-page {
+.login-page{
     min-height: 100vh;
+    width: 100%;
+
     display: flex;
-    justify-content:center;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    padding: 50px;
+
+    text-align: center;
+    background-color: #719ff0;
     }
 
 .login-card{
-    width: 100%;
-    max-width: 400px;
+    display: flex;
+    flex-direction: column;
     background: white;
+    color: #382208;
     padding:200px;
     color:#30201b;
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-    text-align:center;
-    }
-
-.login-card form {
-    display: flex;
-    flex-direction: column;
     text-align:left;
-    gap: 20px;
+    border: 1px;
+    border-radius: 5px;
     }
 
 .login-card input{
@@ -130,19 +162,30 @@ p {
     }
 
 .button{
-    padding: 10px;
+    margin: 15px;
+    padding: 15px;
     text-algin: center;
     background-color: #30201b;
     color: white;
     border: 1px solid #30201b;
     border-radius: 5px;
     cursor:pointer;
+    text-decoration: none;
+    font-family: Agency FB;
+    font-size: 20px;
     }
 
 .button:hover {
     background: white;
     color: #30201b;
 }
+
+.login-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+}
+
 
 /* Dashboard cards */
 .card-grid { ... }
@@ -151,12 +194,45 @@ p {
 
 /* Forms */
 /* Register form */
+.register-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 24px;
+}
+
+.register-card {
+    width: 100%;
+    max-width: 460px;
+
+    background-color: white;
+    border-radius: 16px;
+    padding: 32px;
+
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
 .register-form {
-    border-radius:5px;
-    background-color: #382208;
-    color: #30201b;
-    padding: 50px;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    text-align: left;
+}
+
+.register-form h1 {
+    text-align: center;
+    margin-top: 0;
+}
+
+.register-form input {
+    padding: 10px 12px;
+    border: 1px solid #30201b;
+    border-radius: 8px;
+}
+
 .input[type=text] {
     width: 100%;
     text-align: left;
@@ -165,7 +241,8 @@ p {
     display: inline-block;
     border: 1px solid #ccc;
     border-radius: 2px;
-    box-sizing: border-box
+    box-sizing: border-box;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 .input[type=register] {
     width: 100%;
@@ -259,5 +336,36 @@ li a:hover {
 }
 
 /* Messages */
-.error { ... }
+.error-popup {
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform: translate(-50%,-50%);
+
+    z-index:9999;
+    background-color:white;
+
+    padding: 20px 40px;
+    min-width: 300px;
+    max-width 420px;
+
+    border: 2px;
+    border-radius: 5px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+
+    text-align:center;
+    }
+
+.error-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+
+    background: transparent;
+    border: none;
+    color: #4d4d4d;
+    font-size: 22px;
+    cursor: pointer;
+}
+
 .success { ... }

@@ -39,14 +39,33 @@
                 <label for = "last_name"> Etternavn </label>
                 <input id = "last_name" class = "login-card input" required>
 
-                <label for = "email"> Email </label>
-                <input id = "email" class = "login-card input" required>
+                <!-- id here is defined as user-email rather than email to avoid confusion with login email -->
+                <label for = "user-email"> Email </label>
+                <input id = "user-email" class = "login-card input" required>
 
                 <label for = "contact"> Telefon </label>
                 <input id = "contact" class = "login-card input" required>
 
                 <button type = "submit"> Opprett ny bruker </button>
             </form>
+
+            <div id="user-profile-card" class="hidden profile-card">
+                <h3>Brukerprofil</h3>
+
+                <p><strong>ID:</strong> <span id="profile-user-id"></span></p>
+                <p><strong>Navn:</strong> <span id="profile-user-name"></span></p>
+                <p><strong>Email:</strong> <span id="profile-user-email"></span></p>
+                <p><strong>Telefon:</strong> <span id="profile-user-contact"></span></p>
+                <p><strong>Aktiv:</strong> <span id="profile-user-active"></span></p>
+
+                <button type="button" onclick="deleteSelectedUser()" class="delete-button">
+                    Slett bruker
+                </button>
+
+                <button type="button" onclick="hideUserProfile()">
+                    Lukk
+                </button>
+            </div>
         </section>
     </main>
 

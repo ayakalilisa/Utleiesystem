@@ -1,30 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nb">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrer admin</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
-    <form onsubmit = "RegisterAdmin(event)" class = "register-form">
-        <label for = "firstname"> Fornavn </label>
-        <input id = "firstname" type = "text" required>
 
-        <label for = "middlename"> Mellomnavn </label>
-        <input id = "middlename" type = "text" optional>
+<body class="general-bg">
+    <main class="register-page">
+        <div class="register-card">
+            <form onsubmit="RegisterAdmin(event)" class="register-form">
+                <h1>Register Form</h1>
 
-        <label for = "lastname"> Etternavn </label>
-        <input id = "lastname" type = "text" required>
+                <p>Alle feltet med * må fylles ut</p>
+                <label for="firstname">Fornavn *</label>
+                <input id="firstname" type="text" required>
 
-        <label for = "telefon"> Telefon </label>
-        <input id = "telefon" type = "number" required>
+                <label for="middlename">Mellomnavn</label>
+                <input id="middlename" type="text">
 
-        <label for = "email"> E-post </label>
-        <input id = "email" type = "email" required>
+                <label for="lastname">Etternavn *</label>
+                <input id="lastname" type="text" required>
 
-        <label for = "password"> Passord </label>
-        <input id = "password" type = "password" required>
+                <label for="telefon">Telefon *</label>
+                <input id="telefon" type="tel" required>
 
-        <button type = "register"> Register </button>
-    </form>
+                <label for="register-email">E-post *</label>
+                <input id="register-email" type="email" required>
+
+                <label for="repeat-email">Gjenta e-post *</label>
+                <input id="repeat-email" type="email" required>
+
+                <label for="register-password">Passord *</label>
+                <small class="field-hint">6–20 tegn</small>
+                <input id="register-password" type="password" required>
+
+                <label for="repeat-password">Gjenta passord *</label>
+                <input id="repeat-password" type="password" required>
+
+                <button class="button" type="submit">Register</button>
+
+            </form>
+        </div>
+        <div id="register-error-box" class="error-popup hidden">
+            <button type="button" onclick="closeRegisterError()">×</button>
+            <p id="register-error-message"></p>
+        </div>
+    </main>
+<script src="/static/app.js"></script>
 </body>
 </html>

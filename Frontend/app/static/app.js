@@ -1,5 +1,6 @@
 //This is what the frontend do
 // Backend URL
+console.log("app.js loaded");
 const API_BASE_URL = "http://127.0.0.1:8000";
 
 // Token helpers
@@ -25,37 +26,71 @@ function authHeaders() {
 
 // Login
 async function loginAdmin(event) {
+    console.log("loginAdmin was called");
     event.preventDefault();
 
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const errorBox = document.getElementById("error-message-box");
     const errorMessage = document.getElementById("error-message");
 
     errorMessage.textContent = "";
+    errorBox.classList.add("hidden");
 
-    try{
-        const response = await fetch("http://127.0.0.1:8000/auth/login",
-        {method: "POST",
-        headers: { "Content-Type": "application/json"},
-                    body: JSON.stringify({
-                    email: email,
-                    password: password
-                  })
+    try {
+        const response = await fetch("http://127.0.0.1:8000/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
         });
 
-        if (!response.ok){
-        errorMessage.textContent = "Feil e-post eller passord.";
-        return;
+        if (!response.ok) {
+            const errorData = await response.json();
+
+            errorBox.classList.remove("hidden");
+
+            if (response.status === 422 && Array.isArray(errorData.detail)) {
+                const firstError = errorData.detail[0];
+                const field = firstError.loc[firstError.loc.length - 1];
+
+                if (field === "email") {
+                    errorMessage.textContent = "Ugyldig e-postadresse.";
+                } else if (field === "password") {
+                    errorMessage.textContent = "Passordet må være mellom 6 og 20 tegn.";
+                } else {
+                    errorMessage.textContent = "Ugyldig innlogging. Sjekk feltene.";
+                }
+
+                return;
+            }
+
+            errorMessage.textContent = errorData.detail || "Innlogging feilet.";
+            return;
         }
+
         const data = await response.json();
         saveToken(data.access_token);
         window.location.href = "/dashboard";
 
-        } catch (error) {
-            errorMessage.textContent = "Kunne ikke koble til serveren";
-            }
-        }
+    } catch (error) {
+        errorMessage.textContent = "Kunne ikke koble til serveren";
+        errorBox.classList.remove("hidden");
+    }
+}
 
+
+function closeErrorMessage() {
+    const errorBox = document.getElementById("error-message-box");
+    const errorMessage = document.getElementById("error-message");
+
+    errorMessage.textContent = "";
+    errorBox.classList.add("hidden");
+}
 // Users
 async function loadUsers(){
     const response = await fetch ("http://127.0.0.1:8000/users",
@@ -114,9 +149,11 @@ function applyItemFilters() {
 
 // Categories
 async function loadCategories() {
-    const response = await fetch("http://127.0.0.1:8000/category", {
+    const response = await fetch("http://127.0.0.1:8000/category/", {
         method: "GET",
-        headers: {"Authorization": `Bearer ${getToken()}`
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
     });
 
     const categories = await response.json();
@@ -189,19 +226,94 @@ function handleCategoryChoice() {
     }
 }
 
-// Items
-async function loadItems(){
-    const response = await fetch("http://127.0.0.1:8000/item", {
-        method: "GET",
-        header: {"Authorization": `Bearer ${getToken()}`
-        });
-        const items = await response.json();
 
-        const tabs = document.getElementById("item-tabs");
-        const sections = document.getElementById("item-sections");
+//Register
+async function RegisterAdmin(event) {
+    console.log("RegisterAdmin was called");
+    event.preventDefault();
 
-        return item
+    const FN = document.getElementById("firstname").value;
+    const MN = document.getElementById("middlename").value;
+    const EN = document.getElementById("lastname").value;
+    const telefon = document.getElementById("telefon").value;
+    const email = document.getElementById("register-email").value;
+    const confirmEmail = document.getElementById("repeat-email").value;
+    const password = document.getElementById("register-password").value;
+    const confirmPassword = document.getElementById("repeat-password").value;
+
+    const errorBox = document.getElementById("register-error-box");
+    const errorMessage = document.getElementById("register-error-message");
+
+    errorMessage.textContent = "";
+    errorBox.classList.add("hidden");
+
+    if (!FN || !EN || !telefon || !email || !confirmEmail || !password || !confirmPassword) {
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = "Alle felt med * må fylles ut.";
+        return;
     }
+
+    if (email !== confirmEmail) {
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = "E-postadressene er ikke like.";
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = "Passordene er ikke like.";
+        return;
+    }
+
+    if (password.length < 6 || password.length > 20) {
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = "Passordet må være mellom 6 og 20 tegn.";
+        return;
+    }
+
+    const response = await fetch("http://127.0.0.1:8000/admin/users", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            first_name: FN,
+            middle_name: MN || null,
+            last_name: EN,
+            contact: telefon,
+            email: email,
+            password: password
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = errorData.detail || "Kunne ikke registrere admin.";
+        return;
+    }
+
+    event.target.reset();
+    window.location.href = "/login";
+}
+
+// Items
+async function loadItems() {
+    const response = await fetch("http://127.0.0.1:8000/item/", {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    const items = await response.json();
+
+    const tabs = document.getElementById("item-tabs");
+    const sections = document.getElementById("item-sections");
+
+    return items;
+}
 
 
 async function createItem(event) {
@@ -253,8 +365,22 @@ function AddItemForm(){
 
 
 // Bookings
-loadBookings()
-createBooking()
+function loadBookings(){}
+function createBooking(event){
+    event.preventDefault();}
+}
+
+//Users
+function showAddUserForm() {}
+function createUser(event) {
+    event.preventDefault();
+}
+function showAddCategoryForm() {}
+function createCategory(event) {
+    event.preventDefault();
+}
+function createItem(event) {
+    event.preventDefault();
+}
 
 // Page startup
-DOMContentLoaded

@@ -1,29 +1,36 @@
 <!DOCTYPE html>
 <html lang="nb">
-<link rel="stylesheet" href="/static/style.css">
-<script src="/static/app.js"></script>
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
+<script src="/static/app.js"></script>
 <body>
-<h1>Logg inn</h1>
-<form onsubmit = "loginAdmin(event)" class = "login-card form">
-    <label for = "email"> E-post </label>
-    <input id = "email" class = "login-card input" type = "email" required>
+    <main class="login-page">
 
-    <label for = "password"> Passord </label>
-    <input id = "password" class = "login-card input" type = "password" required>
+        <form onsubmit = "loginAdmin(event)" class = "login-card">
+            <h1>Logg inn</h1>
 
-    <button type = "submit"> Logg inn </button>
-    <a href = "/register" class = "button" Registere </a>
-</form>
+            <label for = "login-email"> E-post </label>   <!--Changed id here to avoid confusion with other email and password, remember to adjust otherplaces-->
+            <input id = "login-email" class = "login-card input" type = "email" required>
 
-<p class="register-text">
-    Admin finnes ikke, registere først
-    <a href="#" class="disabled-link">Kontakt administrator</a>
-</p>
+            <label for = "login-password"> Passord </label>
+            <input id = "login-password" class = "login-card input" type = "password" required>
 
-<p id="error-message" class="error"></p>
+            <div class="login-actions">
+                <button type="submit" class="button">Logg inn</button>
+                <a href="/register" class="button">Registrere</a>
+            </div>
+        </form>
+
+        <div id="error-message-box" class="error-popup hidden">
+            <button type="button" class="error-close" onclick="closeErrorMessage()">×</button>
+            <p id="error-message"></p>
+        </div>
+
+
+
+    </main>
 </body>
 </html>

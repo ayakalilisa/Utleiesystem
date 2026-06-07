@@ -12,10 +12,9 @@ templates = Jinja2Templates(directory="app/templates")
 @app.get("/")
 def home(request: Request):
     return templates.TemplateResponse(
-        "login.html",
+        "home.html",
         {"request": request}
     )
-
 
 @app.get("/login")
 def login_page(request: Request):
