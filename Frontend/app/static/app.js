@@ -29,8 +29,8 @@ async function loginAdmin(event) {
     console.log("loginAdmin was called");
     event.preventDefault();
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
     const errorBox = document.getElementById("error-message-box");
     const errorMessage = document.getElementById("error-message");
 
@@ -91,6 +91,103 @@ function closeErrorMessage() {
     errorMessage.textContent = "";
     errorBox.classList.add("hidden");
 }
+
+
+//Register
+async function RegisterAdmin(event) {
+    console.log("RegisterAdmin was called");
+    event.preventDefault();
+
+    const FN = document.getElementById("firstname").value;
+    const MN = document.getElementById("middlename").value;
+    const EN = document.getElementById("lastname").value;
+    const telefon = document.getElementById("telefon").value;
+    const email = document.getElementById("register-email").value;
+    const confirmEmail = document.getElementById("repeat-email").value;
+    const password = document.getElementById("register-password").value;
+    const confirmPassword = document.getElementById("repeat-password").value;
+
+    const errorBox = document.getElementById("register-error-box");
+    const errorMessage = document.getElementById("register-error-message");
+
+    const successBox = document.getElementById("register-success-box");
+    const successMessage = document.getElementById("register-success-message");
+
+    errorMessage.textContent = "";
+    errorBox.classList.add("hidden");
+
+    successMessage.textContent = "";
+    successBox.classList.add("hidden");
+
+
+
+    if (!FN || !EN || !telefon || !email || !confirmEmail || !password || !confirmPassword) {
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = "Alle felt med * må fylles ut.";
+        return;
+    }
+
+    if (email !== confirmEmail) {
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = "E-postadressene er ikke like.";
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = "Passordene er ikke like.";
+        return;
+    }
+
+    if (password.length < 6 || password.length > 20) {
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = "Passordet må være mellom 6 og 20 tegn.";
+        return;
+    }
+
+    const response = await fetch("http://127.0.0.1:8000/auth/register", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            first_name: FN,
+            middle_name: MN || null,
+            last_name: EN,
+            contact: telefon,
+            email: email,
+            password: password
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+
+        errorBox.classList.remove("hidden");
+        errorMessage.textContent = errorData.detail || "Kunne ikke registrere admin.";
+        return;
+    }
+
+    event.target.reset();
+
+    if(response.ok){
+        successBox.classList.remove("hidden");
+        successMessage.textContent = "Vellykket! Omdirigerer tilbake til innloggingssiden";
+
+        setTimeout(() => {
+        window.location.href = "/login";
+            }, 3000);
+        }
+
+}
+
+function closeRegisterErrorMessage() {
+    const errorBox = document.getElementById("register-error-box");
+    const errorMessage = document.getElementById("register-error-message");
+
+    errorMessage.textContent = "";
+    errorBox.classList.add("hidden");
+}
 // Users
 async function loadUsers(){
     const response = await fetch ("http://127.0.0.1:8000/users",
@@ -107,7 +204,6 @@ async function loadUsers(){
     }
 
 
-createUser()
 //Filter
 function applyItemFilters() {
     const selectedStatus = document.getElementById("filterStatus").value;
@@ -227,76 +323,8 @@ function handleCategoryChoice() {
 }
 
 
-//Register
-async function RegisterAdmin(event) {
-    console.log("RegisterAdmin was called");
-    event.preventDefault();
 
-    const FN = document.getElementById("firstname").value;
-    const MN = document.getElementById("middlename").value;
-    const EN = document.getElementById("lastname").value;
-    const telefon = document.getElementById("telefon").value;
-    const email = document.getElementById("register-email").value;
-    const confirmEmail = document.getElementById("repeat-email").value;
-    const password = document.getElementById("register-password").value;
-    const confirmPassword = document.getElementById("repeat-password").value;
 
-    const errorBox = document.getElementById("register-error-box");
-    const errorMessage = document.getElementById("register-error-message");
-
-    errorMessage.textContent = "";
-    errorBox.classList.add("hidden");
-
-    if (!FN || !EN || !telefon || !email || !confirmEmail || !password || !confirmPassword) {
-        errorBox.classList.remove("hidden");
-        errorMessage.textContent = "Alle felt med * må fylles ut.";
-        return;
-    }
-
-    if (email !== confirmEmail) {
-        errorBox.classList.remove("hidden");
-        errorMessage.textContent = "E-postadressene er ikke like.";
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        errorBox.classList.remove("hidden");
-        errorMessage.textContent = "Passordene er ikke like.";
-        return;
-    }
-
-    if (password.length < 6 || password.length > 20) {
-        errorBox.classList.remove("hidden");
-        errorMessage.textContent = "Passordet må være mellom 6 og 20 tegn.";
-        return;
-    }
-
-    const response = await fetch("http://127.0.0.1:8000/admin/users", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            first_name: FN,
-            middle_name: MN || null,
-            last_name: EN,
-            contact: telefon,
-            email: email,
-            password: password
-        })
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-
-        errorBox.classList.remove("hidden");
-        errorMessage.textContent = errorData.detail || "Kunne ikke registrere admin.";
-        return;
-    }
-
-    event.target.reset();
-    window.location.href = "/login";
-}
 
 // Items
 async function loadItems() {
@@ -358,6 +386,7 @@ async function createItem(event) {
     return item;
 }
 
+
 function AddItemForm(){
     const form = document.getElementById("AddItemForm");
     form.classList.remove("hidden");
@@ -383,4 +412,6 @@ function createItem(event) {
     event.preventDefault();
 }
 
-// Page startup
+// Checkpoints
+window.RegisterAdmin = RegisterAdmin;
+console.log("RegisterAdmin type:", typeof RegisterAdmin);

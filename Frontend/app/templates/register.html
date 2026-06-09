@@ -10,7 +10,7 @@
 <body class="general-bg">
     <main class="register-page">
         <div class="register-card">
-            <form onsubmit="RegisterAdmin(event)" class="register-form">
+            <form onsubmit="RegisterAdmin(event)" class="register-form" novalidate>
                 <h1>Register Form</h1>
 
                 <p>Alle feltet med * må fylles ut</p>
@@ -44,8 +44,11 @@
             </form>
         </div>
         <div id="register-error-box" class="error-popup hidden">
-            <button type="button" onclick="closeRegisterError()">×</button>
+            <button type="button" class = "error-close" onclick="closeRegisterErrorMessage()">×</button>
             <p id="register-error-message"></p>
+        </div>
+        <div id="register-success-box" class="error-popup hidden">
+            <p id="register-success-message"></p>
         </div>
     </main>
 <script src="/static/app.js"></script>

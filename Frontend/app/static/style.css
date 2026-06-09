@@ -61,16 +61,16 @@ p {
 /* Dashboard */
 
 .dashboard-notebook {
-    width: 500px;
-    height: 100vh;
-    color: #382208;
-    position: fixed;
-    top: 0;
-    left: 0;
-    background: white;
-    border-radius: 18px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-    padding: 24px 16px;
+    min-height: 100vh;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    background-color: #719ff0;
 }
 
 .ring {
@@ -89,6 +89,14 @@ p {
     flex-direction: column;
     gap: 18px;
     align-items: center;
+
+    background-color:white;
+    font-family: Agency FB;
+    font-size: 20px;
+
+    border-radius: 2px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    padding: 80px 50px;
 }
 
 .dashboard-button {
@@ -349,7 +357,7 @@ li a:hover {
     min-width: 300px;
     max-width 420px;
 
-    border: 2px;
+    border: 5px solid #382208;
     border-radius: 5px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.25);
 
