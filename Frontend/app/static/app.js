@@ -203,6 +203,104 @@ async function loadUsers(){
     return user;
     }
 
+let allItems = [];
+
+function renderItems(items) {
+    const itemList = document.getElementById("item-list");
+    const emptyMessage = document.getElementById("empty-item-message");
+
+    // clear old cards
+    itemList.innerHTML = "";
+
+    // if no items
+    if (items.length === 0) {
+        emptyMessage.classList.remove("hidden");
+        return;
+    }
+
+    // hide empty message
+    emptyMessage.classList.add("hidden");
+
+    // create item cards
+    items.forEach(item => {
+        const card = document.createElement("article");
+        card.classList.add("item-card");
+
+        card.innerHTML = `
+            <div class="item-image-placeholder"></div>
+            <div>ID: ${item.id}</div>
+            <div>Status: ${item.status}</div>
+            <div>Kommentar: ${item.comments || "Ingen kommentar"}</div>
+            <button type="button">Rediger</button>
+        `;
+
+        itemList.appendChild(card);
+    });
+}
+}
+
+// Items
+async function loadItems() {
+    const response = await fetch("http://127.0.0.1:8000/item/", {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    const items = await response.json();
+
+    const tabs = document.getElementById("item-tabs");
+    const sections = document.getElementById("item-sections");
+
+    allItems = items;
+
+    renderItems(allItems);
+}
+
+
+async function createItem(event) {
+    event.preventDefault();
+
+    const itemId = document.getElementById("itemId").value;
+    const itemStatus = document.getElementById("itemStatus").value;
+    const itemCategory = document.getElementById("itemCategory").value;
+    const itemComment = document.getElementById("itemComment").value;
+    const errorMessage = document.getElementById("errorMessage");
+
+    if (errorMessage) {
+        errorMessage.textContent = "";
+    }
+
+    const response = await fetch("http://127.0.0.1:8000/item/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({
+            name: itemName,
+            status: itemStatus,
+            category_id: Number(itemCategoryId),
+            comments: itemComment
+        })
+    });
+
+    if (!response.ok) {
+        if (errorMessage) {
+            errorMessage.textContent = "Kunne ikke opprette ny vare.";
+        }
+        return;
+    }
+
+    const item = await response.json();
+
+    event.target.reset();
+    loadItems();
+
+    return item;
+}
+
 
 //Filter
 function applyItemFilters() {
@@ -309,8 +407,9 @@ async function createCategory(event) {
     return category;
 }
 
-function AddCategoryForm(){
-    const form = document.getElementById("AddCategoryForm");
+function ShowAddCategoryForm(){
+    console.log("ShowAddCategoryForm called");
+    const form = document.getElementById("ShowAddCategoryForm");
     form.classList.remove("hidden");
     }
 
@@ -318,78 +417,18 @@ function handleCategoryChoice() {
     const categorySelect = document.getElementById("itemCategoryId");
 
     if (categorySelect.value === "create-new") {
-        AddCategoryForm();
+        ShowAddCategoryForm();
     }
 }
-
-
-
-
-
-// Items
-async function loadItems() {
-    const response = await fetch("http://127.0.0.1:8000/item/", {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${getToken()}`
-        }
-    });
-
-    const items = await response.json();
-
-    const tabs = document.getElementById("item-tabs");
-    const sections = document.getElementById("item-sections");
-
-    return items;
-}
-
-
-async function createItem(event) {
-    event.preventDefault();
-
-    const itemId = document.getElementById("itemId").value;
-    const itemStatus = document.getElementById("itemStatus").value;
-    const itemCategory = document.getElementById("itemCategory").value;
-    const itemComment = document.getElementById("itemComment").value;
-    const errorMessage = document.getElementById("errorMessage");
-
-    if (errorMessage) {
-        errorMessage.textContent = "";
-    }
-
-    const response = await fetch("http://127.0.0.1:8000/item/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${getToken()}`
-        },
-        body: JSON.stringify({
-            name: itemName,
-            status: itemStatus,
-            category_id: Number(itemCategoryId),
-            comments: itemComment
-        })
-    });
-
-    if (!response.ok) {
-        if (errorMessage) {
-            errorMessage.textContent = "Kunne ikke opprette ny vare.";
-        }
-        return;
-    }
-
-    const item = await response.json();
-
-    event.target.reset();
-    loadItems();
-
-    return item;
-}
-
-
-function AddItemForm(){
-    const form = document.getElementById("AddItemForm");
+function ShowAddItemForm(){
+    console.log("ShowAddItemForm called");
+    const form = document.getElementById("ShowAddItemForm");
     form.classList.remove("hidden");
+    }
+
+function closePopupForm(popupId){
+    const popupform = document.getElementById(popupId);
+    popupform.classList.add("hidden");
     }
 
 
@@ -397,21 +436,10 @@ function AddItemForm(){
 function loadBookings(){}
 function createBooking(event){
     event.preventDefault();}
-}
 
 //Users
 function showAddUserForm() {}
 function createUser(event) {
-    event.preventDefault();
-}
-function showAddCategoryForm() {}
-function createCategory(event) {
-    event.preventDefault();
-}
-function createItem(event) {
-    event.preventDefault();
-}
+    event.preventDefault();}
 
 // Checkpoints
-window.RegisterAdmin = RegisterAdmin;
-console.log("RegisterAdmin type:", typeof RegisterAdmin);

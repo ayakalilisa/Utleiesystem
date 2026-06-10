@@ -123,6 +123,8 @@ p {
     background-color: #dc2626;
     color: white;
     cursor: pointer;
+    text-decoration: none;,
+
 }
 
 .logout-button:hover {
@@ -194,14 +196,46 @@ p {
     gap: 12px;
 }
 
-
-/* Dashboard cards */
-.card-grid { ... }
-.card { ... }
-.icon { ... }
-
 /* Forms */
 /* Register form */
+height.
+
+Use this:
+
+.popup-form {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    z-index: 9999;
+
+    width: 100%;
+    max-width: 420px;
+
+    padding: 30px;
+
+    background-color: powderblue;
+    color: #30201b;
+    font-family: Agency FB;
+
+    border: 2px solid #30201b;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.popup-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.popup-form input {
+    padding: 10px 12px;
+    border: 1px solid #30201b;
+    border-radius: 8px;
+}
+
 .register-page {
     min-height: 100vh;
     display: flex;
@@ -252,6 +286,7 @@ p {
     box-sizing: border-box;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
+
 .input[type=register] {
     width: 100%;
     background-color: #ff9c59;
@@ -259,23 +294,26 @@ p {
 
 /* items */
 .item-page{
-    width: 100%;
-    padding: 50px;
+    min-height: 100vh;
     text-align: left;
-    background-color: #382208;
+    padding:20px 50px;
+    background-color: #719ff0;
     color: #30201b;
-    }
-.item-card{
     }
 
 .add-button {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: none;
-    font-size: 26px;
+    border: 2px dashed white;
+    background-color: transparent;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 16px;
     cursor: pointer;
 }
+
+.add-button:hover{
+    color: #382208;
+    border: 2px dashed #382208;
+    }
 
 .empty-item-message{
     text-align:center;
@@ -285,13 +323,37 @@ p {
 
 .bookmark-tabs {
     display: flex;
-    align-items: center;
+    align-items:flex-end;
     gap: 12px;
     padding: 12px 16px;
     background-color: white;
+    color:#382208;
+    border:2px solid #382208;
     border-radius: 16px 16px 0 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow:visible;
 }
+
+.bookmark-tab {
+    padding: 10px 22px;
+    background-color: powderblue;
+    color: #382208;
+    text-decoration: none;
+    border-radius: 16px 16px 0 0;
+    border: 1px solid #382208;
+    margin-right: -10px;
+    position: relative;
+}
+
+.bookmark-tab:hover {
+    z-index: 10;
+}
+
+.filter{
+    display:flex;
+    flex-direction:row;
+    gap:10px;
+    }
 
 .nav-placeholder {
     color: #6b7280;
@@ -312,6 +374,49 @@ p {
     color: #822323;
 }
 
+.item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 24px;
+}
+
+.item-card {
+    width: 100%;
+    min-height: 50px;
+
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr 2fr auto;
+    align-items: center;
+    gap: 20px;
+
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 12px 18px;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.item-image-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background-color: #e5e7eb;
+    border: 1px solid #cbd5e1;
+}
+
+.item-field {
+    font-size: 14px;
+}
+
+.edit-button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
 /* Calender */
 .calender-bg{
     background-color: white;
@@ -328,6 +433,7 @@ ul {
   padding: 0;
   width: 100%;
   background-color: #788694;
+  color:white;
 }
 
 li a {
@@ -376,4 +482,15 @@ li a:hover {
     cursor: pointer;
 }
 
+.popup-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+
+    background: transparent;
+    border: none;
+    color: #4d4d4d;
+    font-size: 22px;
+    cursor: pointer;
+}
 .success { ... }

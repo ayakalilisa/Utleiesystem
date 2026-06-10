@@ -10,7 +10,7 @@
 <script src="/static/app.js"></script>
 <body>
 <!--commen nav bar, remember to modify later, cause now it kind of double up with the one below, visually -->
-{% include "includes/commonNav.html" %}
+{% include "commonNav.html" %}
 
 <!--the bookmark-like navigation bar on the top with the filter sorting feature -->
 <nav id="category-tabs" class="bookmark-tabs">
@@ -18,39 +18,20 @@
         Ingen kategorier ennå
     </span>
 
-    <button id="add-category-button" onclick="showAddCategoryForm()" class="nav-add-button">
-        + Opprett kategori
+
+    <button id="add-category-button" onclick="ShowAddCategoryForm()" class="nav-add-button">
+            + Opprett kategori
     </button>
 
-    <select id="filterStatus">
-        <option value="">Alle statuser</option>
-        <option value="new">Helt ny</option>
-        <option value="repair">Treng repersjon</option>
-        <option value="unavailable">Kan ikke leie ut</option>
-    </select>
-
-    <select id="filterCategory">
-        <option value="">Alle kategorier</option>
-    </select>
-
-    <select id="sortItems">
-        <option value="id-desc">ID: nylig til gammel</option>
-        <option value="id-asc">ID: gammel til nylig</option>
-        <option value="status-asc">Status: A-Å</option>    <!--Fix this later! The Status is off, should be filter after 3 options  -->
-        <option value="category-asc">Kategori: A-Å</option>
-    </select>
-
-    <button type="button" onclick="applyItemFilters()">Filtrer</button>
 </nav>
-
 <!--item page -->
     <main>
         <section id="items" class="item-page">
             <div id="item-sections"></div>
 
                 <div class="section-header">
-                    <h2>Dykkeflaske</h2>
-                    <button class="add-button" onclick="AddItemForm()">
+                    <h2>Lager</h2>
+                    <button class="add-button" onclick="ShowAddItemForm()">
                         + Opprett varer
                     </button>
                 </div>
@@ -58,46 +39,80 @@
                 <p id="empty-item-message" class="empty-message">
                     Ingenting på lager
                 </p>
+                <div class = "filter">
+                    <select id="filterStatus">
+                        <option value="">Alle statuser</option>
+                        <option value="new">Helt ny</option>
+                        <option value="repair">Treng repersjon</option>
+                        <option value="unavailable">Kan ikke leie ut</option>
+                    </select>
+
+                    <select id="filterCategory">
+                        <option value="">Alle kategorier</option>
+                    </select>
+
+                    <select id="sortItems">
+                        <option value="id-desc">ID: nylig til gammel</option>
+                        <option value="id-asc">ID: gammel til nylig</option>
+                        <option value="status-asc">Status: A-Å</option>    <!--Fix this later! The Status is off, should be filter after 3 options  -->
+                        <option value="category-asc">Kategori: A-Å</option>
+                    </select>
+
+                    <button type="button" onclick="applyItemFilters()">Filtere</button>
+                </div>
 
                 <div id="item-list" class="item-list">
                     <!--item cards appear here -->
+                     <article class="item-card">
+                        <div class="item-image-placeholder"></div>
+
+                        <div class="item-field">ID: empty</div>
+                        <div class="item-field">Status: empty</div>
+                        <div class="item-field">Kommentar: empty</div>
+
+                        <button class="edit-button">Rediger</button>
+                    </article>
                 </div>
 
 
             <!--the hidden pop-up category form -->
-            <form class="hidden" onsubmit="createCategory(event)">
-                <label for = "categoryName"> Navn </label>
-                <input id = "categoryName" class ="login-card input" required>
+            <div id="ShowAddCategoryForm" class="hidden popup-form ">
+                <form onsubmit="createCategory(event)">
+                    <label for = "categoryName"> Navn </label>
+                    <input id = "categoryName" class ="login-card input" required>
 
-                <label for = "categoryDescription"> Beskrivelse </label>
-                <input id = "categoryDescription" class = "login-card input">
+                    <label for = "categoryDescription"> Beskrivelse </label>
+                    <input id = "categoryDescription" class = "login-card input">
 
-                <button type = "submit">Opprett Kategori </button>
-            </form>
+                    <button type = "submit">Opprett Kategori </button>
+                </form>
+                <button type="button" class = "popup-close" onclick="closePopupForm('ShowAddCategoryForm')">×</button>
+            </div>
 
             <!--the hidden pop-up item form -->
-            <form id="AddCategoryForm" class="hidden" onchange="createItem(event)">
-                <label for = "itemCategory"> Kategori </label>
-                <select id = "itemCategory" name = "itemCategory">
-                    <option value = ""> Velg Kategori </option>
-                    <option value = "createC"> Opprett Kategori </option>
-                     <!--app.js will add categories here  -->
-                </select>
+            <div id="ShowAddItemForm" class="hidden popup-form">
+                <form onsubmit="createItem(event)">
+                    <label for = "itemCategory"> Kategori </label>
+                    <select id = "itemCategory" name = "itemCategory">
+                        <option value = ""> Velg Kategori </option>
+                        <option value = "createC"> Opprett Kategori </option>
+                         <!--app.js will add categories here  -->
+                    </select>
 
-                <label for = "itemStatus">Status på varer </label>
-                <select id = "itemStatus" name = "itemStatus">
-                    <option value = "New">Helt ny</option>
-                    <option value = "okay">Grei stand</option>
-                    <option value = "notgood">Treng reparasjon</option>
-                    <option value = "bad">Ikke tilgjengelig</option>
-                </select>
+                    <label for = "itemStatus">Status på varer </label>
+                    <select id = "itemStatus" name = "itemStatus">
+                        <option value = "new">Helt ny</option>
+                        <option value = "repair">Treng reparasjon</option>
+                        <option value = "unavailable">Ikke tilgjengelig</option>
+                    </select>
 
-                <label for = "itemComment"> Kommentar </label>
-                <input id = "itemComment" class = "login-card input">
+                    <label for = "itemComment"> Kommentar </label>
+                    <input id = "itemComment" class = "login-card input">
 
-                <button type="submit">Lagre vare</button>
-
-            </form>
+                    <button type="submit">Lagre vare</button>
+                </form>
+                <button type="button" class = "popup-close" onclick="closePopupForm('ShowAddItemForm')">×</button>
+            </div>
         </section>
     </main>
 </body>
