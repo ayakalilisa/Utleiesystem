@@ -7,113 +7,178 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
-<script src="/static/app.js"></script>
 <body>
 <!--commen nav bar, remember to modify later, cause now it kind of double up with the one below, visually -->
 {% include "commonNav.html" %}
 
-<!--the bookmark-like navigation bar on the top with the filter sorting feature -->
-<nav id="category-tabs" class="bookmark-tabs">
-    <span id="category-placeholder" class="nav-placeholder">
-        Ingen kategorier ennå
-    </span>
-
-
-    <button id="add-category-button" onclick="ShowAddCategoryForm()" class="nav-add-button">
-            + Opprett kategori
-    </button>
-
-</nav>
 <!--item page -->
-    <main>
-        <section id="items" class="item-page">
-            <div id="item-sections"></div>
 
-                <div class="section-header">
-                    <h2>Lager</h2>
-                    <button class="add-button" onclick="ShowAddItemForm()">
-                        + Opprett varer
-                    </button>
-                </div>
+    <main class="item-page">
 
-                <p id="empty-item-message" class="empty-message">
-                    Ingenting på lager
-                </p>
-                <div class = "filter">
-                    <select id="filterStatus">
-                        <option value="">Alle statuser</option>
-                        <option value="new">Helt ny</option>
-                        <option value="repair">Treng repersjon</option>
-                        <option value="unavailable">Kan ikke leie ut</option>
-                    </select>
+        <!-- Page header -->
+        <div class="section-header">
+            <h2>Lager</h2>
 
-                    <select id="filterCategory">
-                        <option value="">Alle kategorier</option>
-                    </select>
+            <button type="button" class="add-button" onclick="ShowAddItemForm()">
+                + Opprett vare
+            </button>
+        </div>
 
-                    <select id="sortItems">
-                        <option value="id-desc">ID: nylig til gammel</option>
-                        <option value="id-asc">ID: gammel til nylig</option>
-                        <option value="status-asc">Status: A-Å</option>    <!--Fix this later! The Status is off, should be filter after 3 options  -->
-                        <option value="category-asc">Kategori: A-Å</option>
-                    </select>
+        <!-- Filters -->
+        <div class="filter">
+            <select id="filterStatus">
+                <option value="">Alle statuser</option>
+                <option value="new">Helt ny</option>
+                <option value="repair">Treng reparasjon</option>
+                <option value="unavailable">Kan ikke leie ut</option>
+            </select>
 
-                    <button type="button" onclick="applyItemFilters()">Filtere</button>
-                </div>
+            <select id="filterCategory">
+                <option value="">Alle kategorier</option>
+            </select>
 
-                <div id="item-list" class="item-list">
-                    <!--item cards appear here -->
-                     <article class="item-card">
-                        <div class="item-image-placeholder"></div>
+            <select id="sortItems">
+                <option value="id-desc">ID: nylig til gammel</option>
+                <option value="id-asc">ID: gammel til nylig</option>
+                <option value="status-asc">Status: A-Å</option>
+                <option value="category-asc">Kategori: A-Å</option>
+            </select>
 
-                        <div class="item-field">ID: empty</div>
-                        <div class="item-field">Status: empty</div>
-                        <div class="item-field">Kommentar: empty</div>
+            <button type="button" onclick="applyItemFilters()">Filtrer</button>
+        </div>
 
-                        <button class="edit-button">Rediger</button>
-                    </article>
-                </div>
+        <!-- Category bookmark tabs -->
+        <nav id="category-tabs" class="bookmark-tabs">
+            <!-- Always visible All tab -->
+            <button
+                type="button"
+                class="bookmark-tab"
+                data-category-id="all"
+                onclick="ShowCategoryItems('all')"
+            >
+                Alle
+            </button>
 
+            <span id="category-placeholder" class="nav-placeholder">
+                Ingen kategorier ennå
+            </span>
 
-            <!--the hidden pop-up category form -->
-            <div id="ShowAddCategoryForm" class="hidden popup-form ">
-                <form onsubmit="createCategory(event)">
-                    <label for = "categoryName"> Navn </label>
-                    <input id = "categoryName" class ="login-card input" required>
+            <!-- app.js can add category tabs here -->
 
-                    <label for = "categoryDescription"> Beskrivelse </label>
-                    <input id = "categoryDescription" class = "login-card input">
+            <button
+                id="add-category-button"
+                type="button"
+                onclick="ShowAddCategoryForm()"
+                class="bookmark-tab add-tab"
+            >
+                + Opprett kategori
+            </button>
+        </nav>
 
-                    <button type = "submit">Opprett Kategori </button>
-                </form>
-                <button type="button" class = "popup-close" onclick="closePopupForm('ShowAddCategoryForm')">×</button>
-            </div>
+        <!-- Selected category/item content -->
+        <section id="category-content" class="category-content">
+            <p id="empty-item-message" class="empty-message">
+                Ingenting på lager
+            </p>
 
-            <!--the hidden pop-up item form -->
-            <div id="ShowAddItemForm" class="hidden popup-form">
-                <form onsubmit="createItem(event)">
-                    <label for = "itemCategory"> Kategori </label>
-                    <select id = "itemCategory" name = "itemCategory">
-                        <option value = ""> Velg Kategori </option>
-                        <option value = "createC"> Opprett Kategori </option>
-                         <!--app.js will add categories here  -->
-                    </select>
-
-                    <label for = "itemStatus">Status på varer </label>
-                    <select id = "itemStatus" name = "itemStatus">
-                        <option value = "new">Helt ny</option>
-                        <option value = "repair">Treng reparasjon</option>
-                        <option value = "unavailable">Ikke tilgjengelig</option>
-                    </select>
-
-                    <label for = "itemComment"> Kommentar </label>
-                    <input id = "itemComment" class = "login-card input">
-
-                    <button type="submit">Lagre vare</button>
-                </form>
-                <button type="button" class = "popup-close" onclick="closePopupForm('ShowAddItemForm')">×</button>
+            <div id="item-list" class="item-list">
+                <!-- app.js renders item cards here -->
             </div>
         </section>
+
+        <!-- Edit or delete category popup -->
+        <div id="editCategoryPopup" class="hidden popup-form">
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closePopupForm('editCategoryPopup')"
+            >
+                ×
+            </button>
+
+            <form onsubmit="updateCategory(event)">
+                <input type="hidden" id="editCategoryId">
+
+                <label for="editCategoryName">Navn</label>
+                <input id="editCategoryName" required>
+
+                <label for="editCategoryDescription">Beskrivelse</label>
+                <input id="editCategoryDescription">
+
+                <button type="submit">Lagre endringer</button>
+                <button type="button" onclick="deleteCategory()">Slett kategori</button>
+            </form>
+        </div>
+
+        <!-- Create category popup -->
+        <div id="PopCategoryForm" class="hidden popup-form">
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closePopupForm('PopCategoryForm')"
+            >
+                ×
+            </button>
+
+            <h2>Opprett ny kategori</h2>
+
+            <form onsubmit="createCategory(event)">
+                <label for="categoryName">Navn</label>
+                <input id="categoryName" required>
+
+                <label for="categoryDescription">Beskrivelse (valgfri)</label>
+                <input id="categoryDescription">
+
+                <button type="submit">Opprett kategori</button>
+            </form>
+        </div>
+
+        <!-- Create item popup -->
+        <div id="PopItemForm" class="hidden popup-form">
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closePopupForm('PopItemForm')"
+            >
+                ×
+            </button>
+
+            <h2>Opprett ny vare</h2>
+
+            <form onsubmit="createItem(event)">
+                <label for="itemCategory">Kategori</label>
+                <select id="itemCategory" name="itemCategory" onchange="handleCategoryChoice()" required>
+                    <option value="">Velg kategori</option>
+                    <option value="create-new">Opprett kategori</option>
+                    <!-- app.js adds categories here -->
+                </select>
+
+                <label for="itemName">Navn på vare</label>
+                <input id="itemName" required>
+
+                <label for="brand">Merke (valgfri)</label>
+                <input id="brand">
+
+                <label for="size">Størrelse (valgfri)</label>
+                <input id="size">
+
+                <label for="itemStatus">Status på vare</label>
+                <select id="itemStatus" name="itemStatus" required>
+                    <option value="new">Helt ny</option>
+                    <option value="repair">Treng reparasjon</option>
+                    <option value="unavailable">Kan ikke leie ut</option>
+                </select>
+
+                <label for="itemComment">Kommentar</label>
+                <input id="itemComment">
+
+                <button type="submit">Lagre vare</button>
+            </form>
+        </div>
+
     </main>
+
+<script src="/static/app.js"></script>
+</body>
 </body>
 </html>

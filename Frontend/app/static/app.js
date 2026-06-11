@@ -1,7 +1,11 @@
 //This is what the frontend do
 // Backend URL
+
 console.log("app.js loaded");
 const API_BASE_URL = "http://127.0.0.1:8000";
+
+let allItems = [];
+let selectedCategoryId = "all";
 
 // Token helpers
 function getToken() {
@@ -203,8 +207,6 @@ async function loadUsers(){
     return user;
     }
 
-let allItems = [];
-
 function renderItems(items) {
     const itemList = document.getElementById("item-list");
     const emptyMessage = document.getElementById("empty-item-message");
@@ -258,11 +260,26 @@ async function loadItems() {
     renderItems(allItems);
 }
 
+function ShowCategoryItems(categoryId) {
+    selectedCategoryId = categoryId;
+
+    let itemsToShow = [...allItems];
+
+    if (categoryId !== "all") {
+        itemsToShow = itemsToShow.filter(
+            item => item.category_id === Number(categoryId)
+        );
+    }
+
+    renderItems(itemsToShow);
+}
 
 async function createItem(event) {
     event.preventDefault();
 
     const itemId = document.getElementById("itemId").value;
+    const itemBrand = document.getElementById("itemBrand").value;
+    const itemSize = document.getElementById("itemSize").value;
     const itemStatus = document.getElementById("itemStatus").value;
     const itemCategory = document.getElementById("itemCategory").value;
     const itemComment = document.getElementById("itemComment").value;
@@ -280,6 +297,8 @@ async function createItem(event) {
         },
         body: JSON.stringify({
             name: itemName,
+            brand: itemBrand,
+            size: itemSize,
             status: itemStatus,
             category_id: Number(itemCategoryId),
             comments: itemComment
@@ -302,7 +321,7 @@ async function createItem(event) {
 }
 
 
-//Filter
+//Filter remember to add in size filter and brand filer later!
 function applyItemFilters() {
     const selectedStatus = document.getElementById("filterStatus").value;
     const selectedCategory = document.getElementById("filterCategory").value;
@@ -350,35 +369,96 @@ async function loadCategories() {
         }
     });
 
+    if (!response.ok) {
+        console.log("Could not load categories");
+        return;
+    }
+
     const categories = await response.json();
 
     const tabs = document.getElementById("category-tabs");
     const placeholder = document.getElementById("category-placeholder");
-    const sections = document.getElementById("category-sections");
+    const addButton = document.getElementById("add-category-button");
 
     if (categories.length === 0) {
         placeholder.style.display = "inline";
         return;
     }
 
+    // Hide placeholder once categories exist
     placeholder.style.display = "none";
 
     categories.forEach(category => {
-        // create bookmark tab
-        // create matching section
+        // Do not add the same category tab twice
+        const existingTab = document.querySelector(
+            `.category-tab[data-category-id="${category.id}"]`
+        );
+
+        if (existingTab) {
+            return;
+        }
+
+        const tab = document.createElement("button");
+        tab.type = "button";
+        tab.className = "bookmark-tab";
+        tab.dataset.categoryId = category.id;
+        tab.textContent = category.category_name;
+
+        tab.ondblclick = () => {
+            showEditCategoryForm(category);
+        };
+        tab.onclick = () => {
+            console.log("Clicked category:", category.category_name);
+        };
+
+        tabs.insertBefore(tab, addButton);
     });
 }
-
 
 async function createCategory(event) {
     event.preventDefault();
 
-    const categoryName = document.getElementById("categoryName").value;
-    const description = document.getElementById("categoryDescription").value;
-    const errorMessage = document.getElementById("errorMessage");
+    const categoryName = document.getElementById("categoryName").value.trim();
+    const descriptionInput = document.getElementById("categoryDescription").value.trim();
 
-    if (errorMessage) {
-        errorMessage.textContent = "";
+    if (!categoryName) {
+        alert("Kategori navn er påkrevd.");
+        return;
+    }
+
+    if (descriptionInput.length > 0 && descriptionInput.length < 10) {
+        alert("Beskrivelse må være minst 10 tegn, eller være tom.");
+        return;
+    }
+
+    const categoriesResponse = await fetch("http://127.0.0.1:8000/category/", {
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    if (!categoriesResponse.ok) {
+        console.log("Could not load categories");
+        return;
+    }
+
+    const categories = await categoriesResponse.json();
+
+    const alreadyExists = categories.some(category =>
+        category.category_name.toLowerCase() === categoryName.toLowerCase()
+    );
+
+    if (alreadyExists) {
+        alert("Denne kategorien finnes allerede.");
+        return;
+    }
+
+    const body = {
+        category_name: categoryName
+    };
+
+    if (descriptionInput.length > 0) {
+        body.description = descriptionInput;
     }
 
     const response = await fetch("http://127.0.0.1:8000/category/", {
@@ -387,29 +467,104 @@ async function createCategory(event) {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${getToken()}`
         },
-        body: JSON.stringify({
-            category_name: categoryName,
-            description: description
-        })
+        body: JSON.stringify(body)
     });
 
     if (!response.ok) {
-        if (errorMessage) {
-            errorMessage.textContent = "Kunne ikke opprette kategori.Ikke autorisert.";
-        }
+        const errorData = await response.json();
+        console.log("Create category error:", errorData);
         return;
     }
 
-    const category = await response.json();
     event.target.reset();
     loadCategories();
+}
 
-    return category;
+async function updateCategory(event) {
+    event.preventDefault();
+
+    const id = document.getElementById("editCategoryId").value;
+    const categoryName = document.getElementById("editCategoryName").value.trim();
+    const descriptionInput = document.getElementById("editCategoryDescription").value.trim();
+
+    const body = {
+        category_name: categoryName
+    };
+
+    if (descriptionInput.length > 0) {
+        body.description = descriptionInput;
+    }
+
+    const response = await fetch(`http://127.0.0.1:8000/category/${id}`, {
+        method: "PUT", // use PATCH if your backend uses PATCH
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Update category error:", errorData);
+        return;
+    }
+
+    closePopupForm("editCategoryPopup");
+
+    const tab = document.querySelector(`.category-tab[data-category-id="${id}"]`);
+    if (tab) {
+        tab.textContent = categoryName;
+    }
+}
+
+async function deleteCategory() {
+    const id = document.getElementById("editCategoryId").value;
+
+    const confirmed = confirm("Er du sikker på at du vil slette denne kategorien?");
+
+    if (!confirmed) {
+        return;
+    }
+
+    const response = await fetch(`http://127.0.0.1:8000/category/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Delete category error:", errorData);
+        return;
+    }
+
+    closePopupForm("editCategoryPopup");
+
+    const tab = document.querySelector(`.category-tab[data-category-id="${id}"]`);
+    if (tab) {
+        tab.remove();
+    }
+
+    const remainingTabs = document.querySelectorAll(".category-tab");
+
+    if (remainingTabs.length === 0) {
+        document.getElementById("category-placeholder").style.display = "inline";
+    }
+}
+
+function showEditCategoryForm(category) {
+    document.getElementById("editCategoryId").value = category.id;
+    document.getElementById("editCategoryName").value = category.category_name;
+    document.getElementById("editCategoryDescription").value = category.description || "";
+
+    document.getElementById("editCategoryPopup").classList.remove("hidden");
 }
 
 function ShowAddCategoryForm(){
     console.log("ShowAddCategoryForm called");
-    const form = document.getElementById("ShowAddCategoryForm");
+    const form = document.getElementById("PopCategoryForm");
     form.classList.remove("hidden");
     }
 
@@ -422,7 +577,7 @@ function handleCategoryChoice() {
 }
 function ShowAddItemForm(){
     console.log("ShowAddItemForm called");
-    const form = document.getElementById("ShowAddItemForm");
+    const form = document.getElementById("PopItemForm");
     form.classList.remove("hidden");
     }
 
@@ -443,3 +598,7 @@ function createUser(event) {
     event.preventDefault();}
 
 // Checkpoints
+document.addEventListener("DOMContentLoaded", () => {
+    loadCategories();
+});
+
