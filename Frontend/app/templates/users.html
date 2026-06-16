@@ -1,35 +1,51 @@
 <!DOCTYPE html>
 <html lang="nb">
-<link rel="stylesheet" href="/static/style.css">
-<script src="/static/app.js"></script>
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <!--commen nav bar, remember to modify later, cause now it kind of double up with the one below, visually -->
 {% include "commonNav.html" %}
 
-    <main class = "general-bg">
-        <section id = "users" class = "user-page">
-            <div id = "user-sections"></div>
-
-                <div class = "section-header">
-                    <h2>Bruker</h2>
-                    <button class = "add-button" onclick = "AddUserForm()">
+    <main class = "user-page">
+        <!-- Page header -->
+        <div class="section-header">
+            <h2>Bruker</h2>
+            <button type = "button" class = "add-button" onclick = "AddUserForm()">
                         + Opprett ny bruker
-                    </button>
-                </div>
-            <p id = "empty-user-message" class = "empty-message-user">
-                Ingen kontakt
+            </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter">
+            <select id="sortItems">
+                <option value="Fornavn-asc">Fornavn: A-Å</option>
+                <option value="Fornavn-desc">Fornavn: Å-A</option>
+                <option value="Etternavn-asc">Etternavn: A-Å</option>
+                <option value="Etternavn-desc">Etternavn: Å-A</option>
+
+            </select>
+
+            <button type="button" onclick="applyUserFilters()">Filtrer</button>
+        </div>
+
+
+        <section id="user-content" class="user-content">
+            <p id="empty-item-message" class="empty-message">
+                Ingenting på lager
             </p>
 
-            <div id = "user-list" class = "user-list">
-                <!--user cards appear here -->
+            <div id="user-list" class="user-list">
+                <!-- app.js renders user cards here -->
             </div>
-            <!--hidden user cards appear here -->
+        </section>
 
-            <form class = "hidden" onsubmit = "createUser(event)">
+
+        <!--hidden user cards appear here -->
+        <div id = "createUserForm" class = "hidden popup-form">
+            <form onsubmit = "createUser(event)">
                 <label for = "first_name"> Fornavn </label>
                 <input id = "first_name" class = "login-card input" required>
 
@@ -48,26 +64,39 @@
 
                 <button type = "submit"> Opprett ny bruker </button>
             </form>
+        </div>
+        <!-- Edit or delete user -->
+        <div id = "editUserPopup" class = "hidden popup-form">
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closePopupForm('editUserPopup')"
+            >
+                ×
+            </button>
+            <form onsubmit = "updateUser(event)">
 
-            <div id="user-profile-card" class="hidden profile-card">
-                <h3>Brukerprofil</h3>
+                <label for = "editfirst_name"> Fornavn </label>
+                <input id = "editfirst_name" class = "login-card input" required>
 
-                <p><strong>ID:</strong> <span id="profile-user-id"></span></p>
-                <p><strong>Navn:</strong> <span id="profile-user-name"></span></p>
-                <p><strong>Email:</strong> <span id="profile-user-email"></span></p>
-                <p><strong>Telefon:</strong> <span id="profile-user-contact"></span></p>
-                <p><strong>Aktiv:</strong> <span id="profile-user-active"></span></p>
+                <label for = "editmiddle_name"> Mellomnavn </label>
+                <input id = "editmiddle_name" class = "login-card input">
 
-                <button type="button" onclick="deleteSelectedUser()" class="delete-button">
-                    Slett bruker
-                </button>
+                <label for = "editlast_name"> Etternavn </label>
+                <input id = "editlast_name" class = "login-card input" required>
 
-                <button type="button" onclick="hideUserProfile()">
-                    Lukk
-                </button>
-            </div>
-        </section>
+                <!-- id here is defined as user-email rather than email to avoid confusion with login email -->
+                <label for = "edituser-email"> Email </label>
+                <input id = "edituser-email" class = "login-card input" required>
+
+                <label for = "editcontact"> Telefon </label>
+                <input id = "editcontact" class = "login-card input" required>
+
+                <button type = "submit" > Oppdatere </button>
+                <button type = "button" onsubmit = "deleteUser(event)"> Slette </button>
+            </form>
+        </div>
     </main>
-
+<script src="/static/app.js"></script>
 </body>
 </html>

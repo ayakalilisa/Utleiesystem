@@ -28,9 +28,9 @@
         <div class="filter">
             <select id="filterStatus">
                 <option value="">Alle statuser</option>
-                <option value="new">Helt ny</option>
-                <option value="repair">Treng reparasjon</option>
-                <option value="unavailable">Kan ikke leie ut</option>
+                <option value="Helt ny">Helt ny</option>
+                <option value="Treng reparasjon">Treng reparasjon</option>
+                <option value="Kan ikke leie ut">Kan ikke leie ut</option>
             </select>
 
             <select id="filterCategory">
@@ -49,21 +49,15 @@
 
         <!-- Category bookmark tabs -->
         <nav id="category-tabs" class="bookmark-tabs">
-            <!-- Always visible All tab -->
             <button
+                id="all-tab"
                 type="button"
-                class="bookmark-tab"
+                class="bookmark-tab all-tab"
                 data-category-id="all"
                 onclick="ShowCategoryItems('all')"
             >
                 Alle
             </button>
-
-            <span id="category-placeholder" class="nav-placeholder">
-                Ingen kategorier ennå
-            </span>
-
-            <!-- app.js can add category tabs here -->
 
             <button
                 id="add-category-button"
@@ -74,7 +68,6 @@
                 + Opprett kategori
             </button>
         </nav>
-
         <!-- Selected category/item content -->
         <section id="category-content" class="category-content">
             <p id="empty-item-message" class="empty-message">
@@ -156,17 +149,17 @@
                 <label for="itemName">Navn på vare</label>
                 <input id="itemName" required>
 
-                <label for="brand">Merke (valgfri)</label>
-                <input id="brand">
+                <label for="item-brand">Merke (valgfri)</label>
+                <input id="item-brand">
 
-                <label for="size">Størrelse (valgfri)</label>
-                <input id="size">
+                <label for="item-size">Størrelse (valgfri)</label>
+                <input id="item-size">
 
                 <label for="itemStatus">Status på vare</label>
                 <select id="itemStatus" name="itemStatus" required>
-                    <option value="new">Helt ny</option>
-                    <option value="repair">Treng reparasjon</option>
-                    <option value="unavailable">Kan ikke leie ut</option>
+                    <option value="Helt ny">Helt ny</option>
+                    <option value="Treng reparasjon">Treng reparasjon</option>
+                    <option value="Kan ikke leie ut">Kan ikke leie ut</option>
                 </select>
 
                 <label for="itemComment">Kommentar</label>
@@ -175,6 +168,44 @@
                 <button type="submit">Lagre vare</button>
             </form>
         </div>
+        <!-- edit/delete item pop -->
+            <div id="editItemPopup" class="hidden popup-form">
+                <button
+                    type="button"
+                    class="popup-close"
+                    onclick="closePopupForm('editItemPopup')"
+                >
+                    ×
+                </button>
+
+                <form onsubmit="updateItem(event)">
+                    <input type="hidden" id="editItemId">
+
+                    <label for="editItemBrand">Merke (valgfri)</label>
+                    <input id="editItemBrand">
+
+                    <label for="editItemSize">Størrelse (valgfri)</label>
+                    <input id="editItemSize">
+
+                    <label for="editItemCategory">Kategori</label>
+                    <select id="editItemCategory" required>
+                        <!-- app.js can add categories here later -->
+                    </select>
+
+                    <label for="editItemStatus">Status</label>
+                    <select id="editItemStatus" required>
+                        <option value="Helt ny">Helt ny</option>
+                        <option value="Treng reparasjon">Treng reparasjon</option>
+                        <option value="Kan ikke leie ut">Kan ikke leie ut</option>
+                    </select>
+
+                    <label for="editItemComment">Kommentar</label>
+                    <input id="editItemComment">
+
+                    <button type="submit">Lagre endringer</button>
+                    <button type="button" onclick="deleteItem()">Slett vare</button>
+                </form>
+            </div>
 
     </main>
 

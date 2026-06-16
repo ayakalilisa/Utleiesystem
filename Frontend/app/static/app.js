@@ -206,39 +206,37 @@ async function loadUsers(){
 
     return user;
     }
+}
 
 function renderItems(items) {
     const itemList = document.getElementById("item-list");
     const emptyMessage = document.getElementById("empty-item-message");
 
-    // clear old cards
     itemList.innerHTML = "";
 
-    // if no items
     if (items.length === 0) {
         emptyMessage.classList.remove("hidden");
         return;
     }
 
-    // hide empty message
     emptyMessage.classList.add("hidden");
 
-    // create item cards
     items.forEach(item => {
         const card = document.createElement("article");
         card.classList.add("item-card");
 
         card.innerHTML = `
             <div class="item-image-placeholder"></div>
-            <div>ID: ${item.id}</div>
-            <div>Status: ${item.status}</div>
-            <div>Kommentar: ${item.comments || "Ingen kommentar"}</div>
-            <button type="button">Rediger</button>
+            <div class="item-field">ID: ${item.id}</div>
+            <div class="item-field">Brand: ${item.brand || "Ikke oppgitt"}</div>
+            <div class="item-field">Size: ${item.size || "Ikke oppgitt"}</div>
+            <div class="item-field">Status: ${item.status}</div>
+            <div class="item-field">Kommentar: ${item.comments || "Ingen kommentar"}</div>
+            <button type="button" onclick="showEditItemForm(${item.id})">Rediger</button>
         `;
 
         itemList.appendChild(card);
     });
-}
 }
 
 // Items
@@ -260,6 +258,107 @@ async function loadItems() {
     renderItems(allItems);
 }
 
+async function showEditItemForm(itemId) {
+    console.log("Opening edit form for item:", itemId);
+
+    const item = allItems.find(currentItem => currentItem.id === itemId);
+
+    if (!item) {
+        console.log("Item not found:", itemId);
+        return;
+    }
+
+    await loadCategories();
+
+    document.getElementById("editItemId").value = item.id;
+    document.getElementById("editItemBrand").value = item.brand || "";
+    document.getElementById("editItemSize").value = item.size || "";
+    document.getElementById("editItemStatus").value = item.status;
+    document.getElementById("editItemComment").value = item.comments || "";
+
+    document.getElementById("editItemCategory").value = String(item.category_id);
+
+    console.log("Item category id:", item.category_id);
+    console.log(
+        "Dropdown value after set:",
+        document.getElementById("editItemCategory").value
+    );
+
+    document.getElementById("editItemPopup").classList.remove("hidden");
+}
+async function updateItem(event) {
+    event.preventDefault();
+
+    const id = document.getElementById("editItemId").value;
+    const itemBrand = document.getElementById("editItemBrand").value.trim();
+    const itemSize = document.getElementById("editItemSize").value;
+    const itemCategory = document.getElementById("editItemCategory").value;
+    const itemStatus = document.getElementById("editItemStatus").value;
+    const itemComment = document.getElementById("editItemComment").value.trim();
+
+    console.log("Updating item id:", id);
+    console.log("Updating item category:", itemCategory);
+
+    const body = {
+            brand: itemBrand || null,
+            size: itemSize || null,
+            status: itemStatus,
+            category_id: Number(itemCategory),
+            comments: itemComment || null
+    };
+
+    const response = await fetch(`http://127.0.0.1:8000/item/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+    const errorData = await response.json();
+
+    console.log("Status:", response.status);
+    console.log("Update item error:", errorData);
+    console.log("Request body:", body);
+
+    return;
+}
+
+    closePopupForm("editItemPopup");
+
+    await loadItems();
+}
+
+async function deleteItem() {
+    const id = document.getElementById("editItemId").value;
+    console.log("Deleting item id:", id);
+
+    const confirmed = confirm("Er du sikker på at du vil slette denne varen?");
+
+    if (!confirmed) {
+        return;
+    }
+
+    const response = await fetch(`http://127.0.0.1:8000/item/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Delete item error:", errorData);
+        return;
+    }
+    const deletedData = await response.json();
+    closePopupForm("editItemPopup");
+
+    await loadItems();
+}
+
 function ShowCategoryItems(categoryId) {
     selectedCategoryId = categoryId;
 
@@ -276,17 +375,28 @@ function ShowCategoryItems(categoryId) {
 
 async function createItem(event) {
     event.preventDefault();
-
-    const itemId = document.getElementById("itemId").value;
-    const itemBrand = document.getElementById("itemBrand").value;
-    const itemSize = document.getElementById("itemSize").value;
+    const itemBrand = document.getElementById("item-brand").value.trim();
+    const itemSize = document.getElementById("item-size").value.trim();
     const itemStatus = document.getElementById("itemStatus").value;
     const itemCategory = document.getElementById("itemCategory").value;
-    const itemComment = document.getElementById("itemComment").value;
+    const itemComment = document.getElementById("itemComment").value.trim();
     const errorMessage = document.getElementById("errorMessage");
 
     if (errorMessage) {
         errorMessage.textContent = "";
+    }
+
+
+    if (!itemCategory) {
+        if (errorMessage) {
+            errorMessage.textContent = "Du må velge en kategori.";
+        }
+        return;
+    }
+
+    if (itemCategory === "create-new") {
+        ShowAddCategoryForm();
+        return;
     }
 
     const response = await fetch("http://127.0.0.1:8000/item/", {
@@ -296,26 +406,31 @@ async function createItem(event) {
             "Authorization": `Bearer ${getToken()}`
         },
         body: JSON.stringify({
-            name: itemName,
-            brand: itemBrand,
-            size: itemSize,
+            brand: itemBrand || null,
+            size: itemSize || null,
             status: itemStatus,
-            category_id: Number(itemCategoryId),
-            comments: itemComment
+            category_id: Number(itemCategory),
+            comments: itemComment || null
         })
     });
 
+
     if (!response.ok) {
+        const errorData = await response.json();
+
         if (errorMessage) {
-            errorMessage.textContent = "Kunne ikke opprette ny vare.";
+            errorMessage.textContent = errorData.detail || "Kunne ikke opprette ny vare.";
         }
+
         return;
     }
 
     const item = await response.json();
 
     event.target.reset();
-    loadItems();
+    closePopupForm("PopItemForm");
+
+    await loadItems();
 
     return item;
 }
@@ -362,8 +477,7 @@ function applyItemFilters() {
 
 // Categories
 async function loadCategories() {
-    const response = await fetch("http://127.0.0.1:8000/category/", {
-        method: "GET",
+    const response = await fetch(`${API_BASE_URL}/category/`, {
         headers: {
             "Authorization": `Bearer ${getToken()}`
         }
@@ -377,41 +491,74 @@ async function loadCategories() {
     const categories = await response.json();
 
     const tabs = document.getElementById("category-tabs");
-    const placeholder = document.getElementById("category-placeholder");
     const addButton = document.getElementById("add-category-button");
 
-    if (categories.length === 0) {
-        placeholder.style.display = "inline";
-        return;
+    const itemCategorySelect = document.getElementById("itemCategory");
+    const editItemCategorySelect = document.getElementById("editItemCategory");
+    const filterCategorySelect = document.getElementById("filterCategory");
+
+    // Remove old category tabs
+    if (tabs) {
+        tabs.querySelectorAll(".category-tab").forEach(tab => {
+            tab.remove();
+        });
     }
 
-    // Hide placeholder once categories exist
-    placeholder.style.display = "none";
+    // Remove old dropdown options
+    [itemCategorySelect, editItemCategorySelect, filterCategorySelect].forEach(select => {
+        if (select) {
+            select.querySelectorAll("option[data-category-option='true']").forEach(option => {
+                option.remove();
+            });
+        }
+    });
 
     categories.forEach(category => {
-        // Do not add the same category tab twice
-        const existingTab = document.querySelector(
-            `.category-tab[data-category-id="${category.id}"]`
-        );
+        // Add category bookmark tab
+        if (tabs && addButton) {
+            const tab = document.createElement("button");
+            tab.type = "button";
+            tab.className = "bookmark-tab category-tab";
+            tab.dataset.categoryId = category.id;
+            tab.textContent = category.category_name;
 
-        if (existingTab) {
-            return;
+            tab.onclick = () => {
+                ShowCategoryItems(category.id);
+            };
+
+            tab.ondblclick = () => {
+                showEditCategoryForm(category);
+            };
+
+            tabs.insertBefore(tab, addButton);
         }
 
-        const tab = document.createElement("button");
-        tab.type = "button";
-        tab.className = "bookmark-tab";
-        tab.dataset.categoryId = category.id;
-        tab.textContent = category.category_name;
+        // Add to create item dropdown
+        if (itemCategorySelect) {
+            const option = document.createElement("option");
+            option.value = category.id;
+            option.textContent = category.category_name;
+            option.dataset.categoryOption = "true";
+            itemCategorySelect.appendChild(option);
+        }
 
-        tab.ondblclick = () => {
-            showEditCategoryForm(category);
-        };
-        tab.onclick = () => {
-            console.log("Clicked category:", category.category_name);
-        };
+        // Add to edit item dropdown
+        if (editItemCategorySelect) {
+            const option = document.createElement("option");
+            option.value = category.id;
+            option.textContent = category.category_name;
+            option.dataset.categoryOption = "true";
+            editItemCategorySelect.appendChild(option);
+        }
 
-        tabs.insertBefore(tab, addButton);
+        // Add to filter dropdown
+        if (filterCategorySelect) {
+            const option = document.createElement("option");
+            option.value = category.id;
+            option.textContent = category.category_name;
+            option.dataset.categoryOption = "true";
+            filterCategorySelect.appendChild(option);
+        }
     });
 }
 
@@ -477,7 +624,7 @@ async function createCategory(event) {
     }
 
     event.target.reset();
-    loadCategories();
+    await loadCategories();
 }
 
 async function updateCategory(event) {
@@ -542,17 +689,10 @@ async function deleteCategory() {
 
     closePopupForm("editCategoryPopup");
 
-    const tab = document.querySelector(`.category-tab[data-category-id="${id}"]`);
-    if (tab) {
-        tab.remove();
-    }
-
-    const remainingTabs = document.querySelectorAll(".category-tab");
-
-    if (remainingTabs.length === 0) {
-        document.getElementById("category-placeholder").style.display = "inline";
-    }
+    await loadCategories();
+    await loadItems();
 }
+
 
 function showEditCategoryForm(category) {
     document.getElementById("editCategoryId").value = category.id;
@@ -569,23 +709,25 @@ function ShowAddCategoryForm(){
     }
 
 function handleCategoryChoice() {
-    const categorySelect = document.getElementById("itemCategoryId");
+    const categorySelect = document.getElementById("itemCategory");
 
     if (categorySelect.value === "create-new") {
         ShowAddCategoryForm();
     }
 }
-function ShowAddItemForm(){
+
+async function ShowAddItemForm() {
     console.log("ShowAddItemForm called");
+
+    await loadCategories();
+
     const form = document.getElementById("PopItemForm");
     form.classList.remove("hidden");
-    }
-
+}
 function closePopupForm(popupId){
     const popupform = document.getElementById(popupId);
     popupform.classList.add("hidden");
     }
-
 
 // Bookings
 function loadBookings(){}
@@ -593,12 +735,252 @@ function createBooking(event){
     event.preventDefault();}
 
 //Users
-function showAddUserForm() {}
-function createUser(event) {
-    event.preventDefault();}
+let allUsers = [];
+let currentEditingUserId = null;
 
-// Checkpoints
-document.addEventListener("DOMContentLoaded", () => {
-    loadCategories();
+const USER_API_URL = `${API_BASE_URL}/admin/users`;
+
+async function loadUsers() {
+    const userList = document.getElementById("user-list");
+    if (!userList) {
+        return;
+    }
+
+    const response = await fetch(`${USER_API_URL}/`, {
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Could not load users:", errorData);
+        return;
+    }
+
+    const users = await response.json();
+
+    allUsers = users;
+    renderUsers(allUsers);
+}
+
+
+function renderUsers(users) {
+    const userList = document.getElementById("user-list");
+    const emptyMessage = document.getElementById("empty-item-message");
+
+    if (!userList) {
+        return;
+    }
+
+    userList.innerHTML = "";
+
+    if (users.length === 0) {
+        if (emptyMessage) {
+            emptyMessage.classList.remove("hidden");
+            emptyMessage.textContent = "Ingen brukere registrert";
+        }
+        return;
+    }
+
+    if (emptyMessage) {
+        emptyMessage.classList.add("hidden");
+    }
+
+    users.forEach(user => {
+    const card = document.createElement("article");
+    card.classList.add("user-card");
+
+    const fullName = [user.first_name, user.middle_name, user.last_name]
+        .filter(Boolean)
+        .join(" ");
+
+    card.innerHTML = `
+        <div class="item-field">ID: ${user.id}</div>
+        <div class="item-field">${fullName}</div>
+        <div class="item-field">${user.email}</div>
+        <div class="item-field">${user.contact || "Ikke oppgitt"}</div>
+
+        <button type="button" onclick="showEditUserForm(${user.id})">
+            Rediger
+        </button>
+    `;
+
+    userList.appendChild(card);
+    });
+}
+
+
+function AddUserForm() {
+    document.getElementById("createUserForm").classList.remove("hidden");
+}
+
+
+async function createUser(event) {
+    event.preventDefault();
+
+    const firstName = document.getElementById("first_name").value.trim();
+    const middleName = document.getElementById("middle_name").value.trim();
+    const lastName = document.getElementById("last_name").value.trim();
+    const email = document.getElementById("user-email").value.trim();
+    const contact = document.getElementById("contact").value.trim();
+
+    const body = {
+        first_name: firstName,
+        middle_name: middleName || null,
+        last_name: lastName,
+        email: email,
+        contact: contact || null
+    };
+
+    const response = await fetch(`${USER_API_URL}/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Create user error:", errorData);
+        return;
+    }
+
+    closePopupForm("createUserForm");
+
+    document.getElementById("first_name").value = "";
+    document.getElementById("middle_name").value = "";
+    document.getElementById("last_name").value = "";
+    document.getElementById("user-email").value = "";
+    document.getElementById("contact").value = "";
+
+    await loadUsers();
+}
+
+
+function showEditUserForm(userId) {
+    const user = allUsers.find(currentUser => currentUser.id === userId);
+
+    if (!user) {
+        console.log("User not found:", userId);
+        return;
+    }
+
+    currentEditingUserId = user.id;
+
+    document.getElementById("editfirst_name").value = user.first_name || "";
+    document.getElementById("editmiddle_name").value = user.middle_name || "";
+    document.getElementById("editlast_name").value = user.last_name || "";
+    document.getElementById("edituser-email").value = user.email || "";
+    document.getElementById("editcontact").value = user.contact || "";
+
+    document.getElementById("editUserPopup").classList.remove("hidden");
+}
+
+
+async function updateUser(event) {
+    event.preventDefault();
+
+    const id = currentEditingUserId;
+    const firstName = document.getElementById("editfirst_name").value.trim();
+    const middleName = document.getElementById("editmiddle_name").value.trim();
+    const lastName = document.getElementById("editlast_name").value.trim();
+    const email = document.getElementById("edituser-email").value.trim();
+    const contact = document.getElementById("editcontact").value.trim();
+
+    const body = {
+        first_name: firstName,
+        middle_name: middleName || null,
+        last_name: lastName,
+        email: email,
+        contact: contact || null
+    };
+
+    const response = await fetch(`${USER_API_URL}/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Update user error:", errorData);
+        return;
+    }
+
+    closePopupForm("editUserForm");
+
+    await loadUsers();
+}
+
+
+async function deleteUser() {
+    const id = currentEditingUserId;
+    const confirmed = confirm("Er du sikker på at du vil slette denne brukeren?");
+
+    if (!confirmed) {
+        return;
+    }
+
+    const response = await fetch(`${USER_API_URL}/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Delete user error:", errorData);
+        return;
+    }
+
+    closePopupForm("editUserForm");
+
+    await loadUsers();
+}
+
+
+function applyUserFilters() {
+    const sortValue = document.getElementById("sortItems").value;
+
+    let filteredUsers = [...allUsers];
+
+    if (sortValue === "Fornavn-asc") {
+        filteredUsers.sort((a, b) => a.first_name.localeCompare(b.first_name));
+    }
+
+    if (sortValue === "Fornavn-desc") {
+        filteredUsers.sort((a, b) => b.first_name.localeCompare(a.first_name));
+    }
+
+    if (sortValue === "Etternavn-asc") {
+        filteredUsers.sort((a, b) => a.last_name.localeCompare(b.last_name));
+    }
+
+    if (sortValue === "Etternavn-desc") {
+        filteredUsers.sort((a, b) => b.last_name.localeCompare(a.last_name));
+    }
+
+    renderUsers(filteredUsers);
+}
+
+// load
+document.addEventListener("DOMContentLoaded", async () => {
+    if (document.getElementById("category-tabs")) {
+        await loadCategories();
+    }
+
+    if (document.getElementById("item-list")) {
+        await loadItems();
+    }
+
+    if (document.getElementById("user-list")) {
+        await loadUsers();
+    }
 });
-

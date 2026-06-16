@@ -211,7 +211,7 @@ p {
 
     padding: 30px;
 
-    background-color: powderblue;
+    background-color: white;
     color: #30201b;
     font-family: Agency FB;
 
@@ -298,6 +298,7 @@ p {
     }
 
 .add-button {
+    margin-bottom: 15px;
     border: 2px dashed white;
     background-color: transparent;
     color: white;
@@ -319,28 +320,28 @@ p {
 
 .all-tab {
     background-color: #30201b;
-    color: white;
+    color: ivory;
 }
 
 .category-color {
-    background-color: powderblue;
+    background-color: ivory;
 }
 
 .category-content {
     padding: 24px;
     border-radius: 0 0 16px 16px;
-    background-color: white;
+    background-color: ivory;
 }
 
 .category-section.color {
-    border-left: 8px solid powderblue;
+    border-left: 8px solid ivory;
 }
 
 
 .category-tab {
     margin-top:20px;
     padding: 10px 28px;
-    background-color: powderblue;
+    background-color: ivory;
     color: #30201b;
     border: 2px solid #30201b;
     border-bottom: none;
@@ -352,9 +353,9 @@ p {
 }
 
 .bookmark-tab {
-margin-top:20px;
+    margin-top:20px;
     padding: 10px 28px;
-    background-color: powderblue;
+    background-color: ivory;
     color: #382208;
     text-decoration: none;
     border-radius: 16px 16px 0 0;
@@ -368,6 +369,7 @@ margin-top:20px;
 
 .bookmark-tab:hover {
     z-index: 10;
+    backgroun-color: powderblue;
     transform: scale(1.06);
 }
 
@@ -396,21 +398,34 @@ margin-top:20px;
     color: #822323;
 }
 
-.item-list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin-top: 24px;
+* {
+    box-sizing: border-box;
 }
 
+.item-list {
+    width: 100%;
+    margin-top: 24px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 .item-card {
     width: 100%;
     min-height: 50px;
 
     display: grid;
-    grid-template-columns: 60px 1fr 1fr 2fr auto;
+    grid-template-columns:
+        60px          /* image */
+        max-content   /* ID */
+        max-content   /* Brand */
+        max-content   /* Size */
+        max-content   /* Status */
+        minmax(0, 1fr) /* Kommentar */
+        auto;         /* Rediger button */
+
     align-items: center;
-    gap: 20px;
+    column-gap: 12px;
 
     background-color: white;
     border: 1px solid #d1d5db;
@@ -418,6 +433,14 @@ margin-top:20px;
     padding: 12px 18px;
 
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    font-family: Agency FB;
+}
+.item-field {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: Agency FB;
 }
 
 .item-image-placeholder {
@@ -428,15 +451,69 @@ margin-top:20px;
     border: 1px solid #cbd5e1;
 }
 
-.item-field {
-    font-size: 14px;
-}
 
 .edit-button {
     padding: 8px 14px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
+}
+
+/* User */
+.user-page{
+    min-height: 100vh;
+    text-align: left;
+    padding:20px 50px;
+    background-color: #719ff0;
+    color: #30201b;
+    }
+
+.user-content {
+    padding: 24px;
+    border-radius: 0 0 16px 16px;
+    background-color: ivory;
+}
+
+.user-card {
+    width: 100%;
+    min-height: 50px;
+
+    display: grid;
+    grid-template-columns:
+        60px          /* image */
+        max-content   /* ID */
+        max-content   /* firstname */
+        max-content   /* middlename */
+        max-content   /* lastname */
+        max-content   /* email */
+        max-content   /* telefon */
+        auto;         /* Rediger button */
+
+    align-items: center;
+    column-gap: 12px;
+
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 12px 18px;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    font-family: Agency FB;
+}
+.user-field {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: Agency FB;
+}
+
+.user-image-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background-color: #e5e7eb;
+    border: 1px solid #cbd5e1;
 }
 
 /* Calender */
