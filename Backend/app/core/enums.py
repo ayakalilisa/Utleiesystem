@@ -5,7 +5,7 @@ from enum import Enum
 # item status
 class ItemEnum(str, Enum):
     new = "Helt ny"
-    repair = "Treng repersjon"
+    repair = "Treng reparasjon"
     unavailable = "Kan ikke leie ut"
 
 # Booking status

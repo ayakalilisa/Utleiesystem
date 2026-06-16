@@ -24,22 +24,26 @@ def create_new_item(item_data:CreateItem, db: Session = Depends(get_db)):
 def read_items(db:Session = Depends(get_db)):
     return get_all_items(db)
 
-@router.get("/{item.id}")
+@router.get("/{item_id}")
 def read_item(item_id:int, db:Session = Depends(get_db)):
     item = get_item(db, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     return item
 
-@router.put("/{item.id}")
-def update_item(item_id:int, item_data:CreateItem, db:Session = Depends(get_db)):
+@router.put("/{item_id}")
+def update_item_router(item_id:int, item_data:CreateItem, db:Session = Depends(get_db)):
     updated_item = update_item(db, item_id, item_data)
     if not updated_item:
         raise HTTPException(status_code=404, detail="Item not found")
     return updated_item
 
-@router.delete("/{item.id}")
-def delete_item(item_id:int, db: Session = Depends(get_db),):
-    return {"Message": f"Item{item_id} deleted"}
+@router.delete("/{item_id}")
+def delete_item_route(item_id: int,db: Session = Depends(get_db)):
+    deleted_item = delete_item(db, item_id)
 
+    if not deleted_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    return deleted_item
 

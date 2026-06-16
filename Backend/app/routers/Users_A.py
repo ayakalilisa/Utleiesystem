@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.User import User
-from app.schemas.User_S import UserRegister, UserResponse, get_all_users
-from app.services.User_service import CreateUser
+from app.schemas.User_S import UserRegister, UserResponse
+from app.services.User_service import CreateUser, get_all_users
 from app.core.security import get_current_user
 from app.core.dependency import require_admin
 from app.schemas.item_S import CreateItem

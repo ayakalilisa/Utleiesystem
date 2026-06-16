@@ -4,14 +4,17 @@ from app.core.enums import ItemEnum
 
 
 class CreateItem(BaseModel):
-    name: str
+    brand: Optional[str]
+    size: Optional[str]
     status: ItemEnum
+
     category_id: Optional[int] = None
     comments: Optional[str] = Field(default=None, max_length=100)
 
 
 class UpdateItem(BaseModel):
-    name: Optional[str] = None
+    brand: Optional[str] = None
+    size: Optional[str] = None
     status: Optional[ItemEnum] = None
     category_id: Optional[int] = None
     comments: Optional[str] = Field(default=None, max_length=100)
@@ -19,9 +22,10 @@ class UpdateItem(BaseModel):
 
 class ItemResponse(BaseModel):
     id: int
-    name: str
     status: ItemEnum
-    category_id: Optional[int] = None
+    brand: Optional[str] = None
+    size: Optional[int] = None
+    category_id: int
     comments: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

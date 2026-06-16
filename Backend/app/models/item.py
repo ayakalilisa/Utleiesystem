@@ -12,7 +12,9 @@ class Item(Base):
 
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    name = Column(String, index=True)
+    brand = Column(String, index=True)
+    size = Column(String, index=True)
+
     status = Column(
         SQLEnum(ItemEnum, name="item_status_enum"),
         nullable=False

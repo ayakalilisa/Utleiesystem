@@ -1,10 +1,11 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional
 from app.models.User import User
+
 # User Login
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=6, max_length=50)
+    password: str = Field(min_length=6, max_length=20)
 
 class UserRegister(BaseModel):
     email: EmailStr
@@ -24,9 +25,25 @@ class UserResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class AdminRegister(BaseModel):
+    email: EmailStr
+    first_name: str = Field(min_length=1, max_length=20)
+    middle_name: Optional[str] = Field(default=None, max_length=20)
+    last_name: str = Field(min_length=1, max_length=20)
+    contact: Optional[str] = Field(default=None, max_length=15)
+    password: str = Field(min_length=6, max_length=20)
 
-def get_all_users(db):
-    return db.query(User).all()
+
+class AdminResponse(BaseModel):
+    id: int
+    email: EmailStr
+    first_name: str
+    middle_name: Optional[str] = None
+    last_name: str
+    contact: Optional[str] = None
+    active: bool
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 
