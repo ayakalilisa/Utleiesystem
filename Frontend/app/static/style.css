@@ -312,6 +312,21 @@ p {
     border: 2px dashed #382208;
     }
 
+.booking-add-button {
+    margin-bottom: 15px;
+    border: 2px dashed navy;
+    background-color: transparent;
+    color: navy;
+    padding: 8px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+}
+
+.booking-add-button:hover{
+    color: #382208;
+    border: 2px dashed #382208;
+    }
+
 .empty-item-message{
     text-align:center;
     font-family:Agency FB;
@@ -418,6 +433,7 @@ p {
     grid-template-columns:
         60px          /* image */
         max-content   /* ID */
+        max-content   /* Category */
         max-content   /* Brand */
         max-content   /* Size */
         max-content   /* Status */
@@ -469,8 +485,9 @@ p {
     }
 
 .user-content {
+    margin-top:50px;
     padding: 24px;
-    border-radius: 0 0 16px 16px;
+    border-radius: 5px;
     background-color: ivory;
 }
 
@@ -515,16 +532,119 @@ p {
     background-color: #e5e7eb;
     border: 1px solid #cbd5e1;
 }
+.search-results {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    margin-top: 4px;
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 10000;
+    position: relative;
+}
 
+.search-result-button {
+    width: 100%;
+    display: block;
+    text-align: left;
+    padding: 8px 10px;
+    border: none;
+    background-color: white;
+    cursor: pointer;
+}
+
+.search-result-button:hover {
+    background-color: #eef2ff;
+}
+
+.search-result-empty {
+    padding: 8px 10px;
+    margin: 0;
+}
+
+.selected-user-preview {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 12px 0;
+}
 /* Calender */
 .calender-bg{
-    background-color: white;
+    background-color: ivory;
     margin: 50px;
     padding: 50px;
     width: 100%}
 
+.booking-page {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    padding: 32px;
+}
+
+.calendar-bg,
+.booking-side-panel {
+    background-color: white;
+    border-radius: 16px;
+    padding: 24px;
+}
+
+#calendar {
+    width: 100%;
+}
+
+.booking-card {
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: ivory;
+}
+
+.booking-summary-card {
+    font-family: Agency FB;
+    background-color: ivory;
+    color:#382208;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.booking-summary-row {
+    font-family: Agency FB;
+    color:#382208;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1.5fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.booking-detail-box {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #d1d5db;
+}
+
+.booking-detail-item {
+    font-family: Agency FB;
+    background-color: ivory;
+    border:2px solid #382208;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.booking-detail-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
 /* Lists */
 ul {
+  font-family: Agency FB;
   list-style-type: none;
   display: flex;
   flex-direction: row;

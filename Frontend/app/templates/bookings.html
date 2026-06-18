@@ -1,24 +1,192 @@
 <!DOCTYPE html>
 <html lang="nb">
-
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="/static/style.css">
-    <title>Title</title>
+    <title>Bestillinger</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
 </head>
 
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
-
 <body>
-<!--commen nav bar, remember to modify later, cause now it kind of double up with the one below, visually -->
-{% include "commonNav.html" %}
+    {% include "commonNav.html" %}
 
-    <main class = "general-bg">
-        <section class = "calender-bg">
-            <h1> Kalender </h1>
-            <div id = "calender"></div>
+    <main class="booking-page">
+        <section class="calendar-bg">
+            <h1>Kalender</h1>
+            <div id="calendar"></div>
         </section>
+
+        <section class="booking-side-panel">
+            <h1 id="booking-panel-title">Bestillinger denne måneden</h1>
+             <button
+                type="button"
+                class="booking-add-button"
+                onclick="AddBookingForm()"
+            >
+                + Opprett Bestilling
+            </button>
+
+            <div id="booking-list">
+                <!-- app.js renders bookings here -->
+            </div>
+        </section>
+        <div id="createBookingPopup" class="hidden popup-form">
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closePopupForm('createBookingPopup')"
+            >
+                ×
+            </button>
+
+            <h2>Opprett ny bestilling</h2>
+
+            <form onsubmit="createBooking(event)">
+                <!-- Search/select user -->
+                <label for="bookingUserSearch">Bruker</label>
+                <input
+                    id="bookingUserSearch"
+                    type="text"
+                    placeholder="Søk etter bruker"
+                    oninput="searchBookingUsers()"
+                    autocomplete="off"
+                    required
+                >
+
+                <input type="hidden" id="bookingUserId">
+
+                <div id="bookingUserResults" class="search-results hidden"></div>
+
+                <!-- Booking period -->
+                <label for="bookingStartDate">Fra dato</label>
+                <input
+                    id="bookingStartDate"
+                    type="date"
+                    required
+                    onchange="updateAvailableBookingAmount()"
+                >
+
+                <label for="bookingEndDate">Til dato</label>
+                <input
+                    id="bookingEndDate"
+                    type="date"
+                    required
+                    onchange="updateAvailableBookingAmount()"
+                >
+
+                <button type="button" onclick="ShowAddItemInBookingPopup()">
+                    + Legg til vare
+                </button>
+
+                <p> Varer til utleie: </p>
+                <!-- Selected booking items/groups -->
+                <div id="selectedBookingItems" >
+                    <!-- app.js renders selected items here -->
+                </div>
+
+                <label for="bookingComment">Kommentar</label>
+                <input id="bookingComment">
+
+                <button type="submit">Opprett bestilling</button>
+            </form>
+        </div>
+
+        <!-- Pop-up to add in item for the booking -->
+        <div id="AddItemInBookingPopup" class="hidden popup-form">
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closePopupForm('AddItemInBookingPopup')"
+            >
+                ×
+            </button>
+
+            <form onsubmit="addBookingSelection(event)">
+                <label for="categoryBooking">Kategori</label>
+                <select
+                    id="categoryBooking"
+                    name="categoryBooking"
+                    required
+                    onchange="updateBookingBrandOptions()"
+                >
+                    <option value="">Velg kategori</option>
+                </select>
+
+                <label for="brandBooking">Merke</label>
+                <select
+                    id="brandBooking"
+                    name="brandBooking"
+                    required
+                    onchange="updateBookingSizeOptions()"
+                >
+                    <option value="">Velg merke</option>
+                </select>
+
+                <label for="sizeBooking">Størrelse</label>
+                <select
+                    id="sizeBooking"
+                    name="sizeBooking"
+                    required
+                    onchange="updateAvailableBookingAmount()"
+                >
+                    <option value="">Velg størrelse</option>
+                </select>
+
+                <p id="availableBookingAmount">Tilgjengelig: 0</p>
+
+                <label for="bookingAmount">Antall</label>
+                <input
+                    id="bookingAmount"
+                    type="number"
+                    min="1"
+                    value="1"
+                    required
+                >
+
+                <button type="submit">Legg til</button>
+            </form>
+        </div>
+        <!-- edit/delete booking pop -->
+        <div id="editItemPopup" class="hidden popup-form">
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closePopupForm('editItemPopup')"
+            >
+                ×
+            </button>
+
+            <form onsubmit="updateItem(event)">
+                <input type="hidden" id="editItemId">
+
+                <label for="editItemBrand">Merke (valgfri)</label>
+                <input id="editItemBrand">
+
+                <label for="editItemSize">Størrelse (valgfri)</label>
+                <input id="editItemSize">
+
+                <label for="editItemCategory">Kategori</label>
+                <select id="editItemCategory" required>
+                    <!-- app.js can add categories here later -->
+                </select>
+
+                <label for="editItemStatus">Status</label>
+                <select id="editItemStatus" required>
+                    <option value="Helt ny">Helt ny</option>
+                    <option value="Treng reparasjon">Treng reparasjon</option>
+                    <option value="Kan ikke leie ut">Kan ikke leie ut</option>
+                </select>
+
+                <label for="editItemComment">Kommentar</label>
+                <input id="editItemComment">
+
+                <button type="submit">Lagre endringer</button>
+                <button type="button" onclick="deleteItem()">Slett vare</button>
+            </form>
+        </div>
+
     </main>
+    <script src="/static/app.js"></script>
 </body>
-<script src="/static/app.js"></script>
 </html>

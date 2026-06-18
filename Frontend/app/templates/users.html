@@ -20,18 +20,18 @@
 
         <!-- Filters -->
         <div class="filter">
-            <select id="sortItems">
-                <option value="Fornavn-asc">Fornavn: A-Å</option>
-                <option value="Fornavn-desc">Fornavn: Å-A</option>
-                <option value="Etternavn-asc">Etternavn: A-Å</option>
-                <option value="Etternavn-desc">Etternavn: Å-A</option>
+            <input
+                id="userPageSearch"
+                type="text"
+                placeholder="Søk etter navn, email eller telefon"
+                oninput="searchUsersOnUserPage()"
+                autocomplete="off"
+            >
 
-            </select>
-
-            <button type="button" onclick="applyUserFilters()">Filtrer</button>
+            <div id="userPageSearchResults" class="search-results hidden"></div>
         </div>
 
-
+        <div id="selectedUserPreview" class="hidden selected-user-preview"></div>
         <section id="user-content" class="user-content">
             <p id="empty-item-message" class="empty-message">
                 Ingenting på lager
@@ -45,7 +45,17 @@
 
         <!--hidden user cards appear here -->
         <div id = "createUserForm" class = "hidden popup-form">
+            <h2> Opprett ny bruker</h2>
+            <button
+                type="button"
+                class="popup-close"
+                onclick="closePopupForm('createUserForm')"
+            >
+                ×
+            </button>
             <form onsubmit = "createUser(event)">
+                <p id="error-Message-create-User" class="error-message"></p>
+
                 <label for = "first_name"> Fornavn </label>
                 <input id = "first_name" class = "login-card input" required>
 
@@ -65,6 +75,7 @@
                 <button type = "submit"> Opprett ny bruker </button>
             </form>
         </div>
+
         <!-- Edit or delete user -->
         <div id = "editUserPopup" class = "hidden popup-form">
             <button
@@ -93,7 +104,7 @@
                 <input id = "editcontact" class = "login-card input" required>
 
                 <button type = "submit" > Oppdatere </button>
-                <button type = "button" onsubmit = "deleteUser(event)"> Slette </button>
+                <button type = "button" onclick = "deleteUser()"> Slette </button>
             </form>
         </div>
     </main>

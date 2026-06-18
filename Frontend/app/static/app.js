@@ -3,9 +3,20 @@
 
 console.log("app.js loaded");
 const API_BASE_URL = "http://127.0.0.1:8000";
+const USER_API_URL = `${API_BASE_URL}/admin/users`;
 
 let allItems = [];
 let selectedCategoryId = "all";
+let allBookings = [];
+let bookingCalendar = null;
+let selectedBookingItems = [];
+let allUsers = [];
+let currentEditingUserId = null;
+let currentRenderedBookings = [];
+let expandedBookingGroupId = null;
+let currentEditingBookingGroupId = null;
+let isEditingBookingGroup = false;
+let allCategories = [];
 
 // Token helpers
 function getToken() {
@@ -192,34 +203,35 @@ function closeRegisterErrorMessage() {
     errorMessage.textContent = "";
     errorBox.classList.add("hidden");
 }
-// Users
-async function loadUsers(){
-    const response = await fetch ("http://127.0.0.1:8000/users",
-    {method:"GET",
-    headers: {"Authorization": `Bearer ${getToken()}`}
+
+function getCategoryName(categoryId) {
+    const category = allCategories.find(category => {
+        return Number(category.id) === Number(categoryId);
     });
 
-    const user = await response.json();
-
-    if (!response.ok){
-    errorMessage.textContent = "Finnes ingen varer";
-
-    return user;
-    }
+    return category ? category.category_name : "Ukjent kategori";
 }
 
 function renderItems(items) {
     const itemList = document.getElementById("item-list");
     const emptyMessage = document.getElementById("empty-item-message");
 
-    itemList.innerHTML = "";
-
-    if (items.length === 0) {
-        emptyMessage.classList.remove("hidden");
+    if (!itemList) {
         return;
     }
 
-    emptyMessage.classList.add("hidden");
+    itemList.innerHTML = "";
+
+    if (items.length === 0) {
+        if (emptyMessage) {
+            emptyMessage.classList.remove("hidden");
+        }
+        return;
+    }
+
+    if (emptyMessage) {
+        emptyMessage.classList.add("hidden");
+    }
 
     items.forEach(item => {
         const card = document.createElement("article");
@@ -228,18 +240,45 @@ function renderItems(items) {
         card.innerHTML = `
             <div class="item-image-placeholder"></div>
             <div class="item-field">ID: ${item.id}</div>
+            <div class="item-field">Kategori: ${getCategoryName(item.category_id)}</div>
             <div class="item-field">Brand: ${item.brand || "Ikke oppgitt"}</div>
             <div class="item-field">Size: ${item.size || "Ikke oppgitt"}</div>
             <div class="item-field">Status: ${item.status}</div>
             <div class="item-field">Kommentar: ${item.comments || "Ingen kommentar"}</div>
-            <button type="button" onclick="showEditItemForm(${item.id})">Rediger</button>
+            <button type="button" onclick="showEditItemForm(${item.id})">
+                Rediger
+            </button>
         `;
 
         itemList.appendChild(card);
     });
 }
 
+function getUserFullName(user) {
+    return [
+        user.first_name,
+        user.middle_name,
+        user.last_name
+    ]
+        .filter(Boolean)
+        .join(" ");
+}
+
+
+function userMatchesSearch(user, searchText) {
+    const fullName = getUserFullName(user).toLowerCase();
+    const email = (user.email || "").toLowerCase();
+    const contact = (user.contact || "").toLowerCase();
+
+    return (
+        fullName.includes(searchText) ||
+        email.includes(searchText) ||
+        contact.includes(searchText)
+    );
+}
+
 // Items
+// Load items
 async function loadItems() {
     const response = await fetch("http://127.0.0.1:8000/item/", {
         method: "GET",
@@ -248,14 +287,16 @@ async function loadItems() {
         }
     });
 
-    const items = await response.json();
+    if (!response.ok) {
+        console.log("Could not load items");
+        return;
+    }
 
-    const tabs = document.getElementById("item-tabs");
-    const sections = document.getElementById("item-sections");
+    const items = await response.json();
 
     allItems = items;
 
-    renderItems(allItems);
+    ShowCategoryItems(selectedCategoryId);
 }
 
 async function showEditItemForm(itemId) {
@@ -360,17 +401,18 @@ async function deleteItem() {
 }
 
 function ShowCategoryItems(categoryId) {
-    selectedCategoryId = categoryId;
+    selectedCategoryId = String(categoryId);
 
-    let itemsToShow = [...allItems];
-
-    if (categoryId !== "all") {
-        itemsToShow = itemsToShow.filter(
-            item => item.category_id === Number(categoryId)
-        );
+    if (selectedCategoryId === "all") {
+        renderItems(allItems);
+        return;
     }
 
-    renderItems(itemsToShow);
+    const filteredItems = allItems.filter(item => {
+        return String(item.category_id) === selectedCategoryId;
+    });
+
+    renderItems(filteredItems);
 }
 
 async function createItem(event) {
@@ -489,6 +531,7 @@ async function loadCategories() {
     }
 
     const categories = await response.json();
+    allCategories = categories; // Store it in a global list
 
     const tabs = document.getElementById("category-tabs");
     const addButton = document.getElementById("add-category-button");
@@ -496,6 +539,7 @@ async function loadCategories() {
     const itemCategorySelect = document.getElementById("itemCategory");
     const editItemCategorySelect = document.getElementById("editItemCategory");
     const filterCategorySelect = document.getElementById("filterCategory");
+    const bookingCategorySelect = document.getElementById("categoryBooking");
 
     // Remove old category tabs
     if (tabs) {
@@ -504,8 +548,13 @@ async function loadCategories() {
         });
     }
 
-    // Remove old dropdown options
-    [itemCategorySelect, editItemCategorySelect, filterCategorySelect].forEach(select => {
+    // Remove old dynamic dropdown options
+    [
+        itemCategorySelect,
+        editItemCategorySelect,
+        filterCategorySelect,
+        bookingCategorySelect
+    ].forEach(select => {
         if (select) {
             select.querySelectorAll("option[data-category-option='true']").forEach(option => {
                 option.remove();
@@ -558,6 +607,15 @@ async function loadCategories() {
             option.textContent = category.category_name;
             option.dataset.categoryOption = "true";
             filterCategorySelect.appendChild(option);
+        }
+
+        // Add to booking category dropdown
+        if (bookingCategorySelect) {
+            const option = document.createElement("option");
+            option.value = category.id;
+            option.textContent = category.category_name;
+            option.dataset.categoryOption = "true";
+            bookingCategorySelect.appendChild(option);
         }
     });
 }
@@ -724,47 +782,15 @@ async function ShowAddItemForm() {
     const form = document.getElementById("PopItemForm");
     form.classList.remove("hidden");
 }
+
+//A common close window function, insert correct id to close
 function closePopupForm(popupId){
     const popupform = document.getElementById(popupId);
     popupform.classList.add("hidden");
     }
 
-// Bookings
-function loadBookings(){}
-function createBooking(event){
-    event.preventDefault();}
-
 //Users
-let allUsers = [];
-let currentEditingUserId = null;
-
-const USER_API_URL = `${API_BASE_URL}/admin/users`;
-
-async function loadUsers() {
-    const userList = document.getElementById("user-list");
-    if (!userList) {
-        return;
-    }
-
-    const response = await fetch(`${USER_API_URL}/`, {
-        headers: {
-            "Authorization": `Bearer ${getToken()}`
-        }
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.log("Could not load users:", errorData);
-        return;
-    }
-
-    const users = await response.json();
-
-    allUsers = users;
-    renderUsers(allUsers);
-}
-
-
+//Render through all users
 function renderUsers(users) {
     const userList = document.getElementById("user-list");
     const emptyMessage = document.getElementById("empty-item-message");
@@ -801,7 +827,7 @@ function renderUsers(users) {
         <div class="item-field">${user.email}</div>
         <div class="item-field">${user.contact || "Ikke oppgitt"}</div>
 
-        <button type="button" onclick="showEditUserForm(${user.id})">
+        <button type="button" onclick="ShowEditUserForm(${user.id})">
             Rediger
         </button>
     `;
@@ -810,12 +836,118 @@ function renderUsers(users) {
     });
 }
 
+// Load user
+async function loadUsers() {
+    console.log("loadUsers called");
 
+    const response = await fetch(`${API_BASE_URL}/admin/users/`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    console.log("loadUsers status:", response.status);
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Could not load users:", errorData);
+        return;
+    }
+
+    const users = await response.json();
+
+    allUsers = users;
+
+    console.log("allUsers after loading:", allUsers);
+
+    if (document.getElementById("user-list")) {
+        renderUsers(allUsers);
+    }
+}
+
+// User search function with option and fasten the chosen user on top
+function searchUsersOnUserPage() {
+    const searchInput = document.getElementById("userPageSearch");
+    const resultsBox = document.getElementById("userPageSearchResults");
+
+    if (!searchInput || !resultsBox) {
+        return;
+    }
+
+    const searchText = searchInput.value.trim().toLowerCase();
+
+    resultsBox.innerHTML = "";
+
+    if (!searchText) {
+        resultsBox.classList.add("hidden");
+        renderUsers(allUsers);
+        return;
+    }
+
+    const matchingUsers = allUsers.filter(user => {
+        return userMatchesSearch(user, searchText);
+    });
+
+    renderUsers(matchingUsers);
+
+    if (matchingUsers.length === 0) {
+        resultsBox.innerHTML = `<p class="search-result-empty">Ingen bruker funnet</p>`;
+        resultsBox.classList.remove("hidden");
+        return;
+    }
+
+    matchingUsers.forEach(user => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.classList.add("search-result-button");
+
+        button.textContent = `${getUserFullName(user)} - ${user.email}`;
+
+        button.onclick = () => {
+            selectUserOnUserPage(user);
+        };
+
+        resultsBox.appendChild(button);
+    });
+
+    resultsBox.classList.remove("hidden");
+}
+
+
+function selectUserOnUserPage(user) {
+    const searchInput = document.getElementById("userPageSearch");
+    const resultsBox = document.getElementById("userPageSearchResults");
+    const preview = document.getElementById("selectedUserPreview");
+
+    searchInput.value = getUserFullName(user);
+
+    resultsBox.innerHTML = "";
+    resultsBox.classList.add("hidden");
+
+    if (preview) {
+        preview.innerHTML = `
+            <strong>Valgt bruker:</strong>
+            ${getUserFullName(user)} -
+            ${user.email} -
+            ${user.contact || "Ingen telefon"}
+        `;
+        preview.classList.remove("hidden");
+    }
+
+    const selectedFirst = [
+        user,
+        ...allUsers.filter(currentUser => currentUser.id !== user.id)
+    ];
+
+    renderUsers(selectedFirst);
+}
+//Show the form
 function AddUserForm() {
     document.getElementById("createUserForm").classList.remove("hidden");
 }
 
-
+//Create User
 async function createUser(event) {
     event.preventDefault();
 
@@ -824,6 +956,36 @@ async function createUser(event) {
     const lastName = document.getElementById("last_name").value.trim();
     const email = document.getElementById("user-email").value.trim();
     const contact = document.getElementById("contact").value.trim();
+    const errorMessage = document.getElementById("error-Message-create-User");
+
+    if (errorMessage) {
+        errorMessage.textContent = "";
+    }
+
+    // Make sure allUsers is updated before checking duplicates
+    await loadUsers();
+
+    const emailAlreadyExists = allUsers.some(user => {
+        return user.email.toLowerCase() === email.toLowerCase();
+    });
+
+    if (emailAlreadyExists) {
+        if (errorMessage) {
+            errorMessage.textContent = "Denne e-posten er allerede i bruk.";
+        }
+        return;
+    }
+
+    const contactAlreadyExists = allUsers.some(user => {
+        return user.contact && contact && user.contact === contact;
+    });
+
+    if (contactAlreadyExists) {
+        if (errorMessage) {
+            errorMessage.textContent = "Dette telefonnummeret er allerede i bruk.";
+        }
+        return;
+    }
 
     const body = {
         first_name: firstName,
@@ -845,6 +1007,17 @@ async function createUser(event) {
     if (!response.ok) {
         const errorData = await response.json();
         console.log("Create user error:", errorData);
+
+        if (errorMessage) {
+            if (response.status === 409) {
+                errorMessage.textContent = errorData.detail || "E-post eller telefonnummer er allerede i bruk.";
+            } else if (response.status === 422) {
+                errorMessage.textContent = "Ugyldig informasjon. Sjekk feltene.";
+            } else {
+                errorMessage.textContent = errorData.detail || "Kunne ikke opprette bruker.";
+            }
+        }
+
         return;
     }
 
@@ -860,7 +1033,7 @@ async function createUser(event) {
 }
 
 
-function showEditUserForm(userId) {
+function ShowEditUserForm(userId) {
     const user = allUsers.find(currentUser => currentUser.id === userId);
 
     if (!user) {
@@ -879,7 +1052,7 @@ function showEditUserForm(userId) {
     document.getElementById("editUserPopup").classList.remove("hidden");
 }
 
-
+//Update User
 async function updateUser(event) {
     event.preventDefault();
 
@@ -913,13 +1086,15 @@ async function updateUser(event) {
         return;
     }
 
-    closePopupForm("editUserForm");
+    closePopupForm("editUserPopup");
 
     await loadUsers();
 }
 
-
+//function to delete User
 async function deleteUser() {
+    console.log("deleteUser called");
+    console.log("currentEditingUserId:", currentEditingUserId);
     const id = currentEditingUserId;
     const confirmed = confirm("Er du sikker på at du vil slette denne brukeren?");
 
@@ -940,47 +1115,940 @@ async function deleteUser() {
         return;
     }
 
-    closePopupForm("editUserForm");
+    closePopupForm("editUserPopup");
 
     await loadUsers();
 }
 
+// Calendar
+async function AddBookingForm() {
+    await loadUsers();
+    await loadCategories();
+    await loadItems();
+    await loadBookings();
 
-function applyUserFilters() {
-    const sortValue = document.getElementById("sortItems").value;
+    selectedBookingItems = [];
+    renderSelectedBookingItems();
 
-    let filteredUsers = [...allUsers];
-
-    if (sortValue === "Fornavn-asc") {
-        filteredUsers.sort((a, b) => a.first_name.localeCompare(b.first_name));
-    }
-
-    if (sortValue === "Fornavn-desc") {
-        filteredUsers.sort((a, b) => b.first_name.localeCompare(a.first_name));
-    }
-
-    if (sortValue === "Etternavn-asc") {
-        filteredUsers.sort((a, b) => a.last_name.localeCompare(b.last_name));
-    }
-
-    if (sortValue === "Etternavn-desc") {
-        filteredUsers.sort((a, b) => b.last_name.localeCompare(a.last_name));
-    }
-
-    renderUsers(filteredUsers);
+    document.getElementById("createBookingPopup").classList.remove("hidden");
 }
 
+async function ShowAddItemInBookingPopup() {
+    const startDate = document.getElementById("bookingStartDate").value;
+    const endDate = document.getElementById("bookingEndDate").value;
+
+    if (!startDate || !endDate) {
+        alert("Velg fra-dato og til-dato først.");
+        return;
+    }
+
+    if (endDate < startDate) {
+        alert("Til-dato kan ikke være før fra-dato.");
+        return;
+    }
+
+    await loadCategories();
+    await loadItems();
+    await loadBookings();
+
+    resetBookingItemPopup();
+
+    document.getElementById("AddItemInBookingPopup").classList.remove("hidden");
+}
+
+function resetBookingItemPopup() {
+    const categorySelect = document.getElementById("categoryBooking");
+    const brandSelect = document.getElementById("brandBooking");
+    const sizeSelect = document.getElementById("sizeBooking");
+    const amountInput = document.getElementById("bookingAmount");
+    const availableMessage = document.getElementById("availableBookingAmount");
+
+    if (categorySelect) {
+        categorySelect.value = "";
+    }
+
+    if (brandSelect) {
+        brandSelect.innerHTML = `<option value="">Velg merke</option>`;
+    }
+
+    if (sizeSelect) {
+        sizeSelect.innerHTML = `<option value="">Velg størrelse</option>`;
+    }
+
+    if (amountInput) {
+        amountInput.value = 1;
+        amountInput.removeAttribute("max");
+    }
+
+    if (availableMessage) {
+        availableMessage.textContent = "Tilgjengelig: 0";
+    }
+}
+
+async function addItemToBookingList() {
+    const itemSelect = document.getElementById("itemBooking");
+
+    const itemId = Number(itemSelect.value);
+    const itemText = itemSelect.options[itemSelect.selectedIndex].textContent;
+
+    if (!itemId) {
+        alert("Velg en vare først");
+        return;
+    }
+
+    const alreadyAdded = selectedBookingItems.some(item => item.id === itemId);
+
+    if (alreadyAdded) {
+        alert("Denne varen er allerede lagt til");
+        return;
+    }
+
+    selectedBookingItems.push({
+        id: itemId,
+        text: itemText
+    });
+
+    renderSelectedBookingItems();
+}
+
+function renderSelectedBookingItems() {
+    const container = document.getElementById("selectedBookingItems");
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = "";
+
+    if (selectedBookingItems.length === 0) {
+        container.innerHTML = `<p>Ingen varer lagt til.</p>`;
+        return;
+    }
+
+    selectedBookingItems.forEach((group, index) => {
+        const row = document.createElement("div");
+        row.classList.add("selected-booking-item");
+
+        row.innerHTML = `
+            <span>
+                ${group.categoryName} - ${group.brand} - størrelse ${group.size} - antall ${group.amount}
+            </span>
+
+            <button type="button" onclick="removeSelectedBookingItem(${index})">
+                Fjern
+            </button>
+        `;
+
+        container.appendChild(row);
+    });
+}
+
+function removeSelectedBookingItem(index) {
+    selectedBookingItems.splice(index, 1);
+    renderSelectedBookingItems();
+}
+
+function loadBookingItemsByCategory() {
+    const categoryId = Number(document.getElementById("categoryBooking").value);
+    const itemSelect = document.getElementById("itemBooking");
+
+    itemSelect.innerHTML = `<option value="">Velg vare</option>`;
+
+    const filteredItems = allItems.filter(item => item.category_id === categoryId);
+
+    if (filteredItems.length === 0) {
+        itemSelect.innerHTML = `<option value="">Ingen varer i denne kategorien</option>`;
+        return;
+    }
+
+    filteredItems.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = `${item.brand || "Ukjent merke"} - ${item.size || "Ukjent størrelse"} - ${item.status}`;
+        itemSelect.appendChild(option);
+    });
+}
+
+async function loadBookings() {
+    const response = await fetch(`${API_BASE_URL}/booking/`, {
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Could not load bookings:", errorData);
+        return;
+    }
+
+    allBookings = await response.json();
+}
+// Display on the RHS in html booking after opprettelse
+function getUserDisplayName(userId){
+    const user = allUsers.find(user => Number(user.id) === Number(userId));
+
+    if(!user){
+        return `Bruker ${userId}`};
+
+    return [
+        user.first_name,
+        user.middle_name,
+        user.last_name
+        ].filter(Boolean).join("")
+}
+
+function getCategoryName(categoryId) {
+    const category = allCategories.find(category => {
+        return Number(category.id) === Number(categoryId);
+    });
+
+    return category ? category.category_name : "Ukjent kategori";
+}
+
+
+function getItemDisplayName(itemId) {
+    const item = allItems.find(item => Number(item.id) === Number(itemId));
+
+    if (!item) {
+        return `Vare ${itemId}`;
+    }
+
+    return `${item.brand || "Ukjent merke"} - størrelse ${item.size || "Ukjent størrelse"}`;
+}
+
+
+function groupBookingsByGroupId(bookings) {
+    const groups = {};
+
+    bookings.forEach(booking => {
+        const groupId = booking.group_id;
+
+        if (!groups[groupId]) {
+            groups[groupId] = {
+                group_id: groupId,
+                user_id: booking.user_id,
+                start_date: booking.start_date,
+                end_date: booking.end_date,
+                comment: booking.comment || "",
+                active: booking.active,
+                bookings: []
+            };
+        }
+
+        groups[groupId].bookings.push(booking);
+    });
+
+    return Object.values(groups);
+}
+
+
+// This is to convert to FullCalendar style
+function addOneDay(dateString) {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split("T")[0];
+}
+
+function bookingToCalendarEvent(booking) {
+    return {
+        id: String(booking.id),
+        title: `Vare ${booking.item_id}`,
+        start: booking.start_date,
+        end: addOneDay(booking.end_date),
+        allDay: true
+    };
+}
+//Calender display
+async function initBookingPage() {
+    const calendarEl = document.getElementById("calendar");
+
+    if (!calendarEl) {
+        return;
+    }
+
+    await loadBookings();
+
+    bookingCalendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        locale: "nb",
+        height: "auto",
+
+        events: groupBookingsByGroupId(allBookings).map(bookingGroupToCalendarEvent),
+
+        dateClick: function(info) {
+            showBookingsForDate(info.dateStr);
+        },
+
+        datesSet: function(info) {
+            showBookingsForMonth(info.view.currentStart);
+        }
+    });
+
+    bookingCalendar.render();
+
+    showBookingsForMonth(new Date());
+}
+
+
+function isDateInsideBooking(dateString, booking) {
+    return dateString >= booking.start_date && dateString <= booking.end_date;
+}
+
+function showBookingsForDate(dateString) {
+    const title = document.getElementById("booking-panel-title");
+
+
+    title.textContent = `Bestillinger ${dateString}`;
+
+    const bookingsForDate = allBookings.filter(booking => {
+        return isDateInsideBooking(dateString, booking);
+    });
+
+    currentRenderedBookings = bookingsForDate;
+
+    renderBookingList(bookingsForDate, "Ingen bestillinger denne dagen");
+}
+
+function showBookingsForMonth(date) {
+    const title = document.getElementById("booking-panel-title");
+
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    title.textContent = "Bestillinger denne måneden";
+
+    const bookingsForMonth = allBookings.filter(booking => {
+        const bookingStart = new Date(booking.start_date);
+        const bookingEnd = new Date(booking.end_date);
+
+        return (
+            bookingStart.getFullYear() === year &&
+            bookingStart.getMonth() === month
+        ) || (
+            bookingEnd.getFullYear() === year &&
+            bookingEnd.getMonth() === month
+        );
+    });
+
+    currentRenderedBookings = bookingsForMonth;
+
+    renderBookingList(bookingsForMonth, "Ingen bestillinger denne måneden");
+}
+
+function renderBookingList(bookings, emptyMessage) {
+    const bookingList = document.getElementById("booking-list");
+
+    if (!bookingList) {
+        return;
+    }
+
+    bookingList.innerHTML = "";
+
+    if (bookings.length === 0) {
+        bookingList.innerHTML = `<p>${emptyMessage}</p>`;
+        return;
+    }
+
+    const bookingGroups = groupBookingsByGroupId(bookings);
+
+    bookingGroups.forEach(group => {
+        const card = document.createElement("article");
+        card.classList.add("booking-summary-card");
+
+        const shortGroupId = String(group.group_id).slice(0, 8);
+        const userName = getUserDisplayName(group.user_id);
+        const itemCount = group.bookings.length;
+        const isExpanded = expandedBookingGroupId === group.group_id;
+
+        card.innerHTML = `
+            <div class="booking-summary-row">
+                <div><strong>Booking ID:</strong> ${shortGroupId}</div>
+                <div><strong>Bruker:</strong> ${userName}</div>
+                <div><strong>Dato:</strong> ${group.start_date} - ${group.end_date}</div>
+                <div><strong>Antall varer:</strong> ${itemCount}</div>
+
+                <button type="button" onclick="toggleBookingDetails('${group.group_id}')">
+                    ${isExpanded ? "Skjul detaljer" : "Vis detaljer"}
+                </button>
+            </div>
+
+            <div class="booking-details ${isExpanded ? "" : "hidden"}">
+                ${renderBookingGroupDetails(group)}
+            </div>
+        `;
+
+        bookingList.appendChild(card);
+    });
+}
+//Booking summary report card -row
+function renderBookingGroupDetails(group) {
+    const itemRows = group.bookings.map(booking => {
+        return `
+            <div class="booking-detail-item">
+                <p><strong>Bookingrad ID:</strong> ${booking.id}</p>
+                <p><strong>Vare:</strong> ${getItemDisplayName(booking.item_id)}</p>
+                <p><strong>Fra:</strong> ${booking.start_date}</p>
+                <p><strong>Til:</strong> ${booking.end_date}</p>
+                <p><strong>Status:</strong> ${booking.active ? "Aktiv" : "Inaktiv"}</p>
+            </div>
+        `;
+    }).join("");
+
+    return `
+        <div class="booking-detail-box">
+            <p><strong>Kommentar:</strong> ${group.comment || "Ingen kommentar"}</p>
+
+            <div class="booking-detail-items">
+                ${itemRows}
+            </div>
+
+            <div class="booking-detail-actions">
+                <button type="button" onclick="openEditBookingGroup('${group.group_id}')">
+                    Rediger bestilling
+                </button>
+
+                <button type="button" onclick="deleteBookingGroup('${group.group_id}')">
+                    Slett bestilling
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function toggleBookingDetails(groupId) {
+    if (expandedBookingGroupId === groupId) {
+        expandedBookingGroupId = null;
+    } else {
+        expandedBookingGroupId = groupId;
+    }
+
+    renderBookingList(currentRenderedBookings, "Ingen bestillinger");
+}
+
+async function createBooking(event) {
+    event.preventDefault();
+
+    const userId = Number(document.getElementById("bookingUserId").value);
+    const startDate = document.getElementById("bookingStartDate").value;
+    const endDate = document.getElementById("bookingEndDate").value;
+    const comment = document.getElementById("bookingComment").value.trim();
+
+    if (!userId) {
+        alert("Du må velge en bruker fra søket.");
+        return;
+    }
+
+    if (!startDate || !endDate) {
+        alert("Velg utleieperiode.");
+        return;
+    }
+
+    if (endDate < startDate) {
+        alert("Til-dato kan ikke være før fra-dato.");
+        return;
+    }
+
+    if (selectedBookingItems.length === 0) {
+        alert("Legg til minst én vare.");
+        return;
+    }
+
+    const itemIds = selectedBookingItems.flatMap(group => group.itemIds);
+
+    if (itemIds.length === 0) {
+        alert("Ingen varer valgt.");
+        return;
+    }
+
+    // Simple edit strategy:
+    // delete old group first, then create a new group
+    if (isEditingBookingGroup && currentEditingBookingGroupId) {
+        const deleted = await deleteBookingGroup(currentEditingBookingGroupId, false);
+
+        if (!deleted) {
+            return;
+        }
+    }
+
+    const body = {
+        user_id: userId,
+        item_ids: itemIds,
+        start_date: startDate,
+        end_date: endDate,
+        comment: comment || null
+    };
+
+    const response = await fetch(`${API_BASE_URL}/booking/group`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.log("Create booking group error:", errorData);
+        alert(errorData.detail || "Kunne ikke opprette bestilling.");
+        return;
+    }
+
+    selectedBookingItems = [];
+    renderSelectedBookingItems();
+
+    isEditingBookingGroup = false;
+    currentEditingBookingGroupId = null;
+
+    event.target.reset();
+
+    const title = document.querySelector("#createBookingPopup h2");
+    if (title) {
+        title.textContent = "Opprett ny bestilling";
+    }
+
+    closePopupForm("createBookingPopup");
+
+    await refreshBookingDisplay();
+}
+
+//search for the user to create booking
+async function searchBookingUsers() {
+    const searchInput = document.getElementById("bookingUserSearch");
+    const resultsBox = document.getElementById("bookingUserResults");
+    const hiddenUserId = document.getElementById("bookingUserId");
+
+    if (!searchInput || !resultsBox || !hiddenUserId) {
+        return;
+    }
+
+    if (allUsers.length === 0) {
+        await loadUsers();
+    }
+
+    console.log("Booking search allUsers:", allUsers);
+
+    const searchText = searchInput.value.trim().toLowerCase();
+
+    hiddenUserId.value = "";
+    resultsBox.innerHTML = "";
+
+    if (!searchText) {
+        resultsBox.classList.add("hidden");
+        return;
+    }
+
+    const matchingUsers = allUsers.filter(user => {
+        return userMatchesSearch(user, searchText);
+    });
+
+    if (matchingUsers.length === 0) {
+        resultsBox.innerHTML = `<p class="search-result-empty">Ingen bruker funnet</p>`;
+        resultsBox.classList.remove("hidden");
+        return;
+    }
+
+    matchingUsers.forEach(user => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.classList.add("search-result-button");
+
+        button.textContent = `${getUserFullName(user)} - ${user.email}`;
+
+        button.onclick = () => {
+            selectBookingUser(user);
+        };
+
+        resultsBox.appendChild(button);
+    });
+
+    resultsBox.classList.remove("hidden");
+}
+function selectBookingUser(user) {
+    const searchInput = document.getElementById("bookingUserSearch");
+    const hiddenUserId = document.getElementById("bookingUserId");
+    const resultsBox = document.getElementById("bookingUserResults");
+
+    searchInput.value = getUserFullName(user);
+    hiddenUserId.value = user.id;
+
+    resultsBox.innerHTML = "";
+    resultsBox.classList.add("hidden");
+
+    console.log("Selected booking user:", user);
+}
+// Check no other booking is overlapping
+function bookingOverlaps(booking, startDate, endDate) {
+    return booking.active &&
+        booking.start_date <= endDate &&
+        booking.end_date >= startDate;
+}
+
+//Check available items in this period
+function isItemBookedInPeriod(itemId, startDate, endDate) {
+    return allBookings.some(booking => {
+        return Number(booking.item_id) === Number(itemId) &&
+            bookingOverlaps(booking, startDate, endDate);
+    });
+}
+
+//Getting the available items from that selected category
+function getAvailableItemsForBookingSelection() {
+    const categoryId = Number(document.getElementById("categoryBooking").value);
+    const brand = document.getElementById("brandBooking").value;
+    const size = document.getElementById("sizeBooking").value;
+
+    const startDate = document.getElementById("bookingStartDate").value;
+    const endDate = document.getElementById("bookingEndDate").value;
+
+    if (!categoryId || !brand || !size || !startDate || !endDate) {
+        return [];
+    }
+
+    return allItems.filter(item => {
+        return Number(item.category_id) === categoryId &&
+            String(item.brand || "") === brand &&
+            String(item.size || "") === size &&
+            item.status !== "Kan ikke leie ut" &&
+            !isItemBookedInPeriod(item.id, startDate, endDate);
+    });
+}
+//Update the available amount
+function updateAvailableBookingAmount() {
+    const availableItems = getAvailableItemsForBookingSelection();
+    const amountInput = document.getElementById("bookingAmount");
+    const message = document.getElementById("availableBookingAmount");
+
+    if (!amountInput || !message) {
+        return;
+    }
+
+    message.textContent = `Tilgjengelig: ${availableItems.length}`;
+
+    amountInput.max = availableItems.length;
+
+    if (availableItems.length === 0) {
+        amountInput.value = 0;
+    } else if (Number(amountInput.value) > availableItems.length) {
+        amountInput.value = availableItems.length;
+    }
+}
+
+//Fill brand dropdown after category is chosen
+function updateBookingBrandOptions() {
+    const categoryId = Number(document.getElementById("categoryBooking").value);
+    const brandSelect = document.getElementById("brandBooking");
+    const sizeSelect = document.getElementById("sizeBooking");
+
+    brandSelect.innerHTML = `<option value="">Velg merke</option>`;
+    sizeSelect.innerHTML = `<option value="">Velg størrelse</option>`;
+
+    if (!categoryId) {
+        updateAvailableBookingAmount();
+        return;
+    }
+
+    const brands = [...new Set(
+        allItems
+            .filter(item => Number(item.category_id) === categoryId)
+            .map(item => item.brand)
+            .filter(Boolean)
+    )];
+
+    brands.forEach(brand => {
+        const option = document.createElement("option");
+        option.value = brand;
+        option.textContent = brand;
+        brandSelect.appendChild(option);
+    });
+
+    updateAvailableBookingAmount();
+}
+
+//Fill size dropdown after brand is chosen
+function updateBookingSizeOptions() {
+    const categoryId = Number(document.getElementById("categoryBooking").value);
+    const brand = document.getElementById("brandBooking").value;
+    const sizeSelect = document.getElementById("sizeBooking");
+
+    sizeSelect.innerHTML = `<option value="">Velg størrelse</option>`;
+
+    if (!categoryId || !brand) {
+        updateAvailableBookingAmount();
+        return;
+    }
+
+    const sizes = [...new Set(
+        allItems
+            .filter(item => {
+                return Number(item.category_id) === categoryId &&
+                    String(item.brand || "") === brand;
+            })
+            .map(item => item.size)
+            .filter(size => size !== null && size !== undefined)
+            .map(size => String(size))
+    )];
+
+    sizes.forEach(size => {
+        const option = document.createElement("option");
+        option.value = size;
+        option.textContent = size;
+        sizeSelect.appendChild(option);
+    });
+
+    updateAvailableBookingAmount();
+}
+
+//Choose item to book
+function addBookingSelection(event) {
+    event.preventDefault();
+
+    const categorySelect = document.getElementById("categoryBooking");
+    const categoryId = Number(categorySelect.value);
+    const categoryName = categorySelect.options[categorySelect.selectedIndex]?.textContent || "";
+
+    const brand = document.getElementById("brandBooking").value;
+    const size = document.getElementById("sizeBooking").value;
+    const amount = Number(document.getElementById("bookingAmount").value);
+
+    const availableItems = getAvailableItemsForBookingSelection();
+
+    if (!categoryId || !brand || !size) {
+        alert("Velg kategori, merke og størrelse.");
+        return;
+    }
+
+    if (amount <= 0) {
+        alert("Antall må være minst 1.");
+        return;
+    }
+
+    if (amount > availableItems.length) {
+        alert(`Det finnes bare ${availableItems.length} tilgjengelig.`);
+        return;
+    }
+
+    const chosenItems = availableItems.slice(0, amount);
+
+    selectedBookingItems.push({
+        categoryId: categoryId,
+        categoryName: categoryName,
+        brand: brand,
+        size: size,
+        amount: amount,
+        itemIds: chosenItems.map(item => item.id)
+    });
+
+    renderSelectedBookingItems();
+
+    closePopupForm("AddItemInBookingPopup");
+}
+
+//Calender highlight
+function bookingGroupToCalendarEvent(group) {
+    return {
+        id: String(group.group_id),
+        title: `Bestilling ${String(group.group_id).slice(0, 8)}`,
+        start: group.start_date,
+        end: addOneDay(group.end_date),
+        allDay: true
+    };
+}
+
+// Edit booking
+async function openEditBookingGroup(groupId) {
+    await loadUsers();
+    await loadCategories();
+    await loadItems();
+    await loadBookings();
+
+    const group = groupBookingsByGroupId(allBookings).find(group => {
+        return group.group_id === groupId;
+    });
+
+    if (!group) {
+        alert("Fant ikke bestillingen.");
+        return;
+    }
+
+    currentEditingBookingGroupId = group.group_id;
+    isEditingBookingGroup = true;
+
+    const user = allUsers.find(user => Number(user.id) === Number(group.user_id));
+
+    if (user) {
+        document.getElementById("bookingUserSearch").value = getUserDisplayName(user.id);
+        document.getElementById("bookingUserId").value = user.id;
+    }
+
+    document.getElementById("bookingStartDate").value = group.start_date;
+    document.getElementById("bookingEndDate").value = group.end_date;
+    document.getElementById("bookingComment").value = group.comment || "";
+
+    selectedBookingItems = buildSelectedBookingItemsFromBookingGroup(group);
+
+    renderSelectedBookingItems();
+
+    const title = document.querySelector("#createBookingPopup h2");
+    if (title) {
+        title.textContent = "Rediger bestilling";
+    }
+
+    document.getElementById("createBookingPopup").classList.remove("hidden");
+}
+
+function buildSelectedBookingItemsFromBookingGroup(group) {
+    const itemGroups = {};
+
+    group.bookings.forEach(booking => {
+        const item = allItems.find(item => Number(item.id) === Number(booking.item_id));
+
+        if (!item) {
+            return;
+        }
+
+        const key = [
+            item.category_id,
+            item.brand || "",
+            item.size || ""
+        ].join("|");
+
+        if (!itemGroups[key]) {
+            itemGroups[key] = {
+                categoryId: item.category_id,
+                categoryName: getCategoryName(item.category_id),
+                brand: item.brand || "Ukjent merke",
+                size: item.size || "Ukjent størrelse",
+                amount: 0,
+                itemIds: []
+            };
+        }
+
+        itemGroups[key].amount += 1;
+        itemGroups[key].itemIds.push(item.id);
+    });
+
+    return Object.values(itemGroups);
+}
+
+async function deleteBookingGroup(groupId, askConfirm = true) {
+    const group = groupBookingsByGroupId(allBookings).find(group => {
+        return group.group_id === groupId;
+    });
+
+    if (!group) {
+        alert("Fant ikke bestillingen.");
+        return false;
+    }
+
+    if (askConfirm) {
+        const confirmed = confirm("Er du sikker på at du vil slette hele bestillingen?");
+
+        if (!confirmed) {
+            return false;
+        }
+    }
+
+    for (const booking of group.bookings) {
+        const response = await fetch(`${API_BASE_URL}/booking/${booking.id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.log("Delete booking error:", errorData);
+            alert(`Kunne ikke slette booking ${booking.id}`);
+            return false;
+        }
+    }
+
+    if (askConfirm) {
+        await refreshBookingDisplay();
+    }
+
+    return true;
+}
+
+async function deleteBookingGroup(groupId, askConfirm = true) {
+    const group = groupBookingsByGroupId(allBookings).find(group => {
+        return group.group_id === groupId;
+    });
+
+    if (!group) {
+        alert("Fant ikke bestillingen.");
+        return false;
+    }
+
+    if (askConfirm) {
+        const confirmed = confirm("Er du sikker på at du vil slette hele bestillingen?");
+
+        if (!confirmed) {
+            return false;
+        }
+    }
+
+    for (const booking of group.bookings) {
+        const response = await fetch(`${API_BASE_URL}/booking/${booking.id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${getToken()}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.log("Delete booking error:", errorData);
+            alert(`Kunne ikke slette booking ${booking.id}`);
+            return false;
+        }
+    }
+
+    if (askConfirm) {
+        await refreshBookingDisplay();
+    }
+
+    return true;
+}
+
+async function refreshBookingDisplay() {
+    await loadBookings();
+
+    if (bookingCalendar) {
+        bookingCalendar.removeAllEvents();
+
+        const bookingGroups = groupBookingsByGroupId(allBookings);
+
+        bookingGroups.forEach(group => {
+            bookingCalendar.addEvent(bookingGroupToCalendarEvent(group));
+        });
+    }
+
+    expandedBookingGroupId = null;
+
+    showBookingsForMonth(new Date());
+}
 // load
 document.addEventListener("DOMContentLoaded", async () => {
+    if (
+        document.getElementById("user-list") ||
+        document.getElementById("bookingUserSearch")
+    ) {
+        await loadUsers();
+    }
+
+    if (document.getElementById("calendar")) {
+        await initBookingPage();
+    }
+
     if (document.getElementById("category-tabs")) {
         await loadCategories();
     }
 
     if (document.getElementById("item-list")) {
         await loadItems();
-    }
-
-    if (document.getElementById("user-list")) {
-        await loadUsers();
     }
 });
