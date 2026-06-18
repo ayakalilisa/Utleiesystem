@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.User_S import UserLogin, AdminRegister, AdminResponse
+from app.schemas.User_S import UserRegister,AdminRegister, AdminResponse
 from app.services.User_service import AdminAuth, CreateAdmin
 from app.core.security import get_tolken
 
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login")
 @router.post("/login")
-def login(user_data: UserLogin, db: Session = Depends(get_db)):
+def login(user_data: UserRegister, db: Session = Depends(get_db)):
     result = AdminAuth(db, user_data.email, user_data.password)
 
     if result == "email_not_found":

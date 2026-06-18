@@ -3,7 +3,6 @@ from app.models.item import Item
 
 def create_item(db, item_data):
     new_item = Item(
-        name = item_data.name,
         brand = item_data.brand,
         size = item_data.size,
         status = item_data.status,

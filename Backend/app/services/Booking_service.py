@@ -1,4 +1,5 @@
 from http.client import HTTPException
+from uuid import uuid4
 
 from app.models.Booking import Booking
 from app.schemas.Booking_S import BookingCreate
@@ -37,7 +38,6 @@ def create_booking(db: Session, booking_data):
     - item exists
     - item is not already booked in the same period
     """
-
     user = db.query(User).filter(User.id == booking_data.user_id).first()
 
     if not user:
@@ -68,6 +68,7 @@ def create_booking(db: Session, booking_data):
         )
 
     new_booking = Booking(
+        group_id=booking_data.group_id or uuid4(),
         user_id=booking_data.user_id,
         item_id=booking_data.item_id,
         start_date=booking_data.start_date,
@@ -82,6 +83,68 @@ def create_booking(db: Session, booking_data):
 
     return new_booking
 
+def create_booking_group(db: Session, booking_data):
+    user = db.query(User).filter(User.id == booking_data.user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bruker ikke funnet"
+        )
+
+    if not booking_data.item_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Du må velge minst én vare"
+        )
+
+    group_id = uuid4()
+    new_bookings = []
+
+    # Check everything first before creating anything
+    for item_id in booking_data.item_ids:
+        item = db.query(Item).filter(Item.id == item_id).first()
+
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Vare {item_id} ikke funnet"
+            )
+
+        conflicts = check_booking(
+            db=db,
+            item_id=item_id,
+            start=booking_data.start_date,
+            end=booking_data.end_date
+        )
+
+        if conflicts:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Vare {item_id} er ikke tilgjengelig"
+            )
+
+    # Create after all checks passed
+    for item_id in booking_data.item_ids:
+        new_booking = Booking(
+            group_id=group_id,
+            user_id=booking_data.user_id,
+            item_id=item_id,
+            start_date=booking_data.start_date,
+            end_date=booking_data.end_date,
+            active=True,
+            comment=booking_data.comment
+        )
+
+        db.add(new_booking)
+        new_bookings.append(new_booking)
+
+    db.commit()
+
+    for booking in new_bookings:
+        db.refresh(booking)
+
+    return new_bookings
 
 def get_all_bookings(db: Session):
     return db.query(Booking).all()

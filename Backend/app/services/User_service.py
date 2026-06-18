@@ -4,13 +4,20 @@ from fastapi import HTTPException, status
 
 
 def CreateUser(db, user_data):
-    existing_user = db.query(User).filter(User.email == user_data.email).first()
-
-    if existing_user:
+    existing_email = db.query(User).filter(User.email == user_data.email).first()
+    if existing_email:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Denne e-postadressen har allerede blitt brukt."
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Denne e-posten er allerede i bruk"
         )
+
+    if user_data.contact:
+        existing_contact = db.query(User).filter(User.contact == user_data.contact).first()
+        if existing_contact:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Dette telefonnummeret er allerede i bruk"
+            )
 
     new_user = User(
         email=user_data.email,
@@ -78,3 +85,37 @@ def AdminAuth(db, email: str, password: str):
 # Moved from User_S to here since schema is only in charge with the table
 def get_all_users(db):
     return db.query(User).all()
+
+def get_user_by_id(db, user_id: int):
+    return db.query(User).filter(User.id == user_id).first()
+
+
+def update_user_service(db, user_id: int, user_data):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        return None
+
+    update_data = user_data.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(user, key, value)
+
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
+def delete_user_service(db, user_id: int):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        return None
+
+    deleted_user_id = user.id
+
+    db.delete(user)
+    db.commit()
+
+    return {"message": f"User {deleted_user_id} has been deleted"}

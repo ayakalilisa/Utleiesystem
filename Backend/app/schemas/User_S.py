@@ -2,11 +2,7 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional
 from app.models.User import User
 
-# User Login
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=6, max_length=20)
-
+# Create User
 class UserRegister(BaseModel):
     email: EmailStr
     first_name: str = Field(min_length=1, max_length=20)

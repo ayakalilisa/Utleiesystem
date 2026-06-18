@@ -2,15 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.dependency import require_admin
 from app.database import get_db
-from app.schemas.Booking_S import BookingCreate, BookingResponse
+from app.schemas.Booking_S import BookingCreate, BookingResponse, BookingGroupCreate
 from app.services.Booking_service import (
     create_booking,
+    create_booking_group,
     get_all_bookings,
     get_booking_by_id,
     deactivate_booking,
     delete_booking
 )
-
 
 router = APIRouter(
     prefix="/booking",
@@ -18,6 +18,19 @@ router = APIRouter(
     dependencies=[Depends(require_admin)]
 )
 
+@router.post("/", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
+def create_new_booking(
+    booking_data: BookingCreate,
+    db: Session = Depends(get_db)
+):
+    return create_booking(db, booking_data)
+
+@router.post("/group", response_model=list[BookingResponse], status_code=status.HTTP_201_CREATED)
+def create_new_booking_group(
+    booking_data: BookingGroupCreate,
+    db: Session = Depends(get_db)
+):
+    return create_booking_group(db, booking_data)
 
 @router.post("/", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 def create_new_booking(
