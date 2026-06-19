@@ -15,6 +15,11 @@ h1 {
     color: #382208;
     }
 
+h2 {
+    font-family: Agency FB;
+    color: #382208;
+
+    }
 p {
     font-family: Agency FB;
     color: #382208;
@@ -59,84 +64,161 @@ p {
 
 
 /* Dashboard */
-
-.dashboard-notebook {
+.dashboard-page {
     min-height: 100vh;
+    background-color: #719ff0;
+    padding: 32px 48px;
+}
+
+.dashboard-header {
+    width: calc(100% + 96px);
+    margin-left: -48px;
+    margin-right: -48px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background-color: ivory;
+    box-shadow: none;
+    border-radius: 0;
+    position: relative;
+
+    padding: 24px 48px;
+}
+
+.dashboard-header::after {
+    content: "";
+    position: absolute;
+
+    left: 0;
+    bottom: -45px;
+
     width: 100%;
+    height: 60px;
+
+    background-color: ivory;
+
+    -webkit-mask:
+        radial-gradient(67.08px at 50% calc(100% - 90px), #000 99%, #0000 101%) calc(50% - 60px) 0 / 120px 100%,
+        radial-gradient(67.08px at 50% calc(100% + 60px), #0000 99%, #000 101%) 50% calc(100% - 30px) / 120px 100% repeat-x;
+
+    mask:
+        radial-gradient(67.08px at 50% calc(100% - 90px), #000 99%, #0000 101%) calc(50% - 60px) 0 / 120px 100%,
+        radial-gradient(67.08px at 50% calc(100% + 60px), #0000 99%, #000 101%) 50% calc(100% - 30px) / 120px 100% repeat-x;
+}
+
+.dashboard-icon-menu {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 100px;
+}
+
+.dashboard-icon-card {
+    font-family: Agency FB;
+    min-height: 150px;
 
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    gap: 12px;
 
-    text-align: center;
-    background-color: #719ff0;
+    background: ivory;
+    border-radius: 20px;
+    text-decoration: none;
+    color: #1f2937;
+    font-size: 24px;
+    font-weight: bold;
+
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.ring {
-    position: absolute;
-    top: 24px;
-    left: 24px;
-    width: 26px;
-    height: 26px;
-    border: 4px solid #484c54;
-    border-radius: 50%;
-    background: #484c54;
+.dashboard-icon-card:hover {
+    transform: translateY(-4px);
+    color: #719ff0;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
-.notebook-menu {
+.dashboard-icon {
+    background: transparent;
+    font-size: 46px;
+}
+
+.today-bookings-section {
+    width: 100%;
+    font-family: Agency FB;
+    color: #382208;
+    font-size: 25px;
+    margin-top: 200px;
+    padding: 24px 32px;
+
+    background-color: transparent;
+    border-top: 8px solid rgba(31, 41, 55, 0.25);
+
+}
+
+.today-bookings-section h2 {
+    margin-top: 0;
+}
+
+.today-booking-list {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 12px;
+}
+
+.today-booking-row {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1.5fr 1fr;
+    gap: 16px;
     align-items: center;
 
-    background-color:white;
-    font-family: Agency FB;
-    font-size: 20px;
-
-    border-radius: 2px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-    padding: 80px 50px;
+    padding: 14px 16px;
+    background-color: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 12px;
 }
 
-.dashboard-button {
-    display: inline-block;
-    padding: 8px 18px;
-    text-decoration: none;
-    color: black;
-
-    border: 5px solid transparent;
-    border-radius: 20px;
-}
-
-.dashboard-button :hover {
-    border: 5px solid #822323;
-    background-color: transparent;
-}
-
-.logout-button {
-    width: 100%;
-    margin-top: 32px;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    background-color: #dc2626;
-    color: white;
-    cursor: pointer;
-    text-decoration: none;,
-
-}
-
-.logout-button:hover {
-    background-color: #b91c1c;
-}
-
-.page-content {
-    margin-left: 240px;
-    padding: 32px;
+.empty-dashboard-message {
+    color: #4b5563;
+    font-style: italic;
 }
 
 /* Login page */
+.home-page {
+    min-height: 100vh;
+    width: 100%;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    background-color: #719ff0;
+}
+
+.home-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    color: white;
+    padding: 40px;
+}
+
+.home-title {
+    font-size: 80px;
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 32px;
+    margin-top: 8px;
+}
+
 .login-page{
     min-height: 100vh;
     width: 100%;
@@ -293,18 +375,19 @@ p {
     min-height: 100vh;
     text-align: left;
     padding:20px 50px;
-    background-color: #719ff0;
+    background-color: white;
     color: #30201b;
     }
 
 .add-button {
     margin-bottom: 15px;
-    border: 2px dashed white;
+    border: 2px dashed #495d8c;
     background-color: transparent;
-    color: white;
+    color: #495d8c;
     padding: 8px 14px;
     border-radius: 16px;
     cursor: pointer;
+    font-family:Agency FB;
 }
 
 .add-button:hover{
@@ -314,9 +397,9 @@ p {
 
 .booking-add-button {
     margin-bottom: 15px;
-    border: 2px dashed navy;
+    border: 2px dashed #495d8c;
     background-color: transparent;
-    color: navy;
+    color: #495d8c;
     padding: 8px 14px;
     border-radius: 16px;
     cursor: pointer;
@@ -334,29 +417,29 @@ p {
     }
 
 .all-tab {
-    background-color: #30201b;
+    background-color: #505e70;
     color: ivory;
 }
 
 .category-color {
-    background-color: ivory;
+    background-color: #505e70;
 }
 
 .category-content {
     padding: 24px;
     border-radius: 0 0 16px 16px;
-    background-color: ivory;
+    background-color: #505e70;
 }
 
 .category-section.color {
-    border-left: 8px solid ivory;
+    border-left: 8px solid #505e70;
 }
 
 
 .category-tab {
     margin-top:20px;
     padding: 10px 28px;
-    background-color: ivory;
+    background-color: #505e70;
     color: #30201b;
     border: 2px solid #30201b;
     border-bottom: none;
@@ -384,7 +467,6 @@ p {
 
 .bookmark-tab:hover {
     z-index: 10;
-    backgroun-color: powderblue;
     transform: scale(1.06);
 }
 
@@ -425,6 +507,7 @@ p {
     flex-direction: column;
     gap: 10px;
 }
+
 .item-card {
     width: 100%;
     min-height: 50px;
@@ -432,11 +515,11 @@ p {
     display: grid;
     grid-template-columns:
         60px          /* image */
-        max-content   /* ID */
-        max-content   /* Category */
-        max-content   /* Brand */
-        max-content   /* Size */
-        max-content   /* Status */
+        60px   /* ID */
+        80px   /* Category */
+        80px   /* Brand */
+        80px   /* Size */
+        1fr   /* Status */
         minmax(0, 1fr) /* Kommentar */
         auto;         /* Rediger button */
 
@@ -476,11 +559,20 @@ p {
 }
 
 /* User */
+.user-list {
+    width: 100%;
+    margin-top: 24px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .user-page{
     min-height: 100vh;
     text-align: left;
     padding:20px 50px;
-    background-color: #719ff0;
+    background-color: white;
     color: #30201b;
     }
 
@@ -488,7 +580,8 @@ p {
     margin-top:50px;
     padding: 24px;
     border-radius: 5px;
-    background-color: ivory;
+    background-color: #505e70;
+    border: 1px solid #382208;
 }
 
 .user-card {
@@ -497,17 +590,14 @@ p {
 
     display: grid;
     grid-template-columns:
-        60px          /* image */
-        max-content   /* ID */
-        max-content   /* firstname */
-        max-content   /* middlename */
-        max-content   /* lastname */
-        max-content   /* email */
-        max-content   /* telefon */
-        auto;         /* Rediger button */
+        70px              /* ID */
+        minmax(220px, 2fr) /* Full name */
+        2fr /* Email */
+        1fr /* Telefon */
+        auto;              /* Rediger */
 
     align-items: center;
-    column-gap: 12px;
+    column-gap: 24px;
 
     background-color: white;
     border: 1px solid #d1d5db;
@@ -515,14 +605,14 @@ p {
     padding: 12px 18px;
 
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    font-family: Agency FB;
+    font-family: "Agency FB", Arial, sans-serif;
 }
+
 .user-field {
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-family: Agency FB;
 }
 
 .user-image-placeholder {
@@ -577,6 +667,7 @@ p {
     width: 100%}
 
 .booking-page {
+    background-color: white;
     min-height: 100vh;
     display: grid;
     grid-template-columns: 1.2fr 1fr;
@@ -606,7 +697,6 @@ p {
 .booking-summary-card {
     font-family: Agency FB;
     background-color: ivory;
-    color:#382208;
     border: 1px solid #d1d5db;
     border-radius: 12px;
     padding: 12px;
@@ -615,7 +705,7 @@ p {
 
 .booking-summary-row {
     font-family: Agency FB;
-    color:#382208;
+    background-color: ivory;
     display: grid;
     grid-template-columns: 1fr 1.5fr 1.5fr 1fr auto;
     gap: 12px;
@@ -631,6 +721,7 @@ p {
 .booking-detail-item {
     font-family: Agency FB;
     background-color: ivory;
+
     border:2px solid #382208;
     border-radius: 8px;
     padding: 10px;
@@ -642,17 +733,46 @@ p {
     gap: 10px;
     margin-top: 12px;
 }
+
 /* Lists */
 ul {
-  font-family: Agency FB;
+  font-family: "Agency FB", Arial, sans-serif;
+  font-size: 25px;
   list-style-type: none;
+
   display: flex;
   flex-direction: row;
+
   margin: 0;
-  padding: 0;
+  padding: 20px;
   width: 100%;
+
   background-color: #788694;
-  color:white;
+  color: white;
+
+  position: relative;
+  z-index: 10;
+}
+
+ul::after {
+    content: "";
+    position: absolute;
+
+    left: 0;
+    bottom: -45px;
+
+    width: 100%;
+    height: 60px;
+
+    background-color: #788694;
+
+    -webkit-mask:
+        radial-gradient(67.08px at 50% calc(100% - 90px), #000 99%, #0000 101%) calc(50% - 60px) 0 / 120px 100%,
+        radial-gradient(67.08px at 50% calc(100% + 60px), #0000 99%, #000 101%) 50% calc(100% - 30px) / 120px 100% repeat-x;
+
+    mask:
+        radial-gradient(67.08px at 50% calc(100% - 90px), #000 99%, #0000 101%) calc(50% - 60px) 0 / 120px 100%,
+        radial-gradient(67.08px at 50% calc(100% + 60px), #0000 99%, #000 101%) 50% calc(100% - 30px) / 120px 100% repeat-x;
 }
 
 li a {

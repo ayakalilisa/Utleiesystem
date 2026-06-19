@@ -1,25 +1,53 @@
 <!DOCTYPE html>
 <html lang="nb">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
-    <main class = "general-bg">
-        <section class = "dashboard-notebook">
-            <div class = "ring"></div>
+    <main class="dashboard-page">
 
-            <nav class = "notebook-menu">
-                <a href = "/bookings" class = "dashboard-button"> Bestillinger </a>
-                <a href = "/items" class = "dashboard-button"> Varer </a>
-                <a href = "/users" class = "dashboard-button"> Telefon bok </a>
-                <a href="/" class="logout-button">Logg ut</a>
-            </nav>
+        <header class="dashboard-header">
+            <div>
+                <h1 id="dashboardGreeting">Hei, admin</h1>
+                <p class="dashboard-subtitle">Velkommen tilbake!</p>
+            </div>
+
+            <button type="button" class="button" onclick="logoutAdmin()">
+                Logg ut
+            </button>
+        </header>
+
+        <section class="dashboard-icon-menu">
+            <a href="/bookings" class="dashboard-icon-card">
+                <span class="dashboard-icon">📅</span>
+                <span>Bestillinger</span>
+            </a>
+
+            <a href="/items" class="dashboard-icon-card">
+                <span class="dashboard-icon">📦</span>
+                <span>Lager</span>
+            </a>
+
+            <a href="/users" class="dashboard-icon-card">
+                <span class="dashboard-icon">📞</span>
+                <span>Telefonbok</span>
+            </a>
         </section>
+
+        <section class="today-bookings-section">
+            <h2>Dagens bestillinger</h2>
+
+            <div id="today-booking-list" class="today-booking-list">
+                <!-- app.js renders today's booking summaries here -->
+            </div>
+        </section>
+
     </main>
-<script src="/static/app.js"></script>
+
+    <script src="/static/app.js"></script>
 </body>
 </html>

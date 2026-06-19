@@ -1367,7 +1367,15 @@ async function initBookingPage() {
         return;
     }
 
+    await loadUsers();
+    await loadCategories();
+    await loadItems();
     await loadBookings();
+
+    console.log("Booking page users:", allUsers);
+    console.log("Booking page categories:", allCategories);
+    console.log("Booking page items:", allItems);
+    console.log("Booking page bookings:", allBookings);
 
     bookingCalendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
@@ -1389,7 +1397,6 @@ async function initBookingPage() {
 
     showBookingsForMonth(new Date());
 }
-
 
 function isDateInsideBooking(dateString, booking) {
     return dateString >= booking.start_date && dateString <= booking.end_date;
@@ -1483,14 +1490,44 @@ function renderBookingList(bookings, emptyMessage) {
 }
 //Booking summary report card -row
 function renderBookingGroupDetails(group) {
-    const itemRows = group.bookings.map(booking => {
+    const groupedItems = {};
+    console.log("Booking group:", group);
+    console.log("group.bookings:", group.bookings);
+    console.log("allItems:", allItems);
+    console.log("allCategories:", allCategories);
+
+    group.bookings.forEach(booking => {
+        const item = allItems.find(item => Number(item.id) === Number(booking.item_id));
+
+        if (!item) {
+            return;
+        }
+
+        const categoryName = getCategoryName(item.category_id);
+        const brand = item.brand || "Ukjent merke";
+        const size = item.size || "Ukjent størrelse";
+
+        const key = `${item.category_id}|${brand}|${size}`;
+
+        if (!groupedItems[key]) {
+            groupedItems[key] = {
+                categoryName: categoryName,
+                brand: brand,
+                size: size,
+                amount: 0
+            };
+        }
+
+        groupedItems[key].amount += 1;
+    });
+
+    const itemRows = Object.values(groupedItems).map(itemGroup => {
         return `
             <div class="booking-detail-item">
-                <p><strong>Bookingrad ID:</strong> ${booking.id}</p>
-                <p><strong>Vare:</strong> ${getItemDisplayName(booking.item_id)}</p>
-                <p><strong>Fra:</strong> ${booking.start_date}</p>
-                <p><strong>Til:</strong> ${booking.end_date}</p>
-                <p><strong>Status:</strong> ${booking.active ? "Aktiv" : "Inaktiv"}</p>
+                <p><strong>Kategori:</strong> ${itemGroup.categoryName}</p>
+                <p><strong>Merke:</strong> ${itemGroup.brand}</p>
+                <p><strong>Størrelse:</strong> ${itemGroup.size}</p>
+                <p><strong>Antall:</strong> ${itemGroup.amount}</p>
             </div>
         `;
     }).join("");
@@ -1500,7 +1537,7 @@ function renderBookingGroupDetails(group) {
             <p><strong>Kommentar:</strong> ${group.comment || "Ingen kommentar"}</p>
 
             <div class="booking-detail-items">
-                ${itemRows}
+                ${itemRows || "<p>Ingen varer funnet.</p>"}
             </div>
 
             <div class="booking-detail-actions">
@@ -1930,47 +1967,6 @@ function buildSelectedBookingItemsFromBookingGroup(group) {
     });
 
     return Object.values(itemGroups);
-}
-
-async function deleteBookingGroup(groupId, askConfirm = true) {
-    const group = groupBookingsByGroupId(allBookings).find(group => {
-        return group.group_id === groupId;
-    });
-
-    if (!group) {
-        alert("Fant ikke bestillingen.");
-        return false;
-    }
-
-    if (askConfirm) {
-        const confirmed = confirm("Er du sikker på at du vil slette hele bestillingen?");
-
-        if (!confirmed) {
-            return false;
-        }
-    }
-
-    for (const booking of group.bookings) {
-        const response = await fetch(`${API_BASE_URL}/booking/${booking.id}`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${getToken()}`
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.log("Delete booking error:", errorData);
-            alert(`Kunne ikke slette booking ${booking.id}`);
-            return false;
-        }
-    }
-
-    if (askConfirm) {
-        await refreshBookingDisplay();
-    }
-
-    return true;
 }
 
 async function deleteBookingGroup(groupId, askConfirm = true) {
